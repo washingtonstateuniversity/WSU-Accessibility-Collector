@@ -40,7 +40,8 @@ module.exports = function( grunt ) {
 					undef: true,
 					unused: true,
 					browser: true, // Define globals exposed by modern browsers.
-					jquery: true   // Define globals exposed by jQuery.
+					jquery: true,   // Define globals exposed by jQuery.
+					node: true
 				}
 			}
 		}
