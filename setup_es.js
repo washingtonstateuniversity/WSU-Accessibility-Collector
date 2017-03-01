@@ -67,13 +67,12 @@ var createIndex = function() {
 	}, function( error, response ) {
 		if ( undefined !== typeof response && true === response.acknowledged ) {
 			console.log( "Index schema created." );
-		}
-
-		if ( undefined !== typeof error ) {
+		} else {
+			console.log( "Error with index creation." );
 			console.log( error );
 		}
 	} );
-}
+};
 
 elastic.client.indices.exists( {
 	index: "a11y-again"
