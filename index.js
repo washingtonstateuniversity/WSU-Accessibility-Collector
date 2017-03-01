@@ -31,8 +31,13 @@ collector.elastic = new elasticsearch.Client( {
 // Delete any previous records stored for this URL.
 collector.elastic.deleteByQuery( {
 	index: process.env.ES_INDEX,
-    q: "url:" + encodeURIComponent( url.href ),
-	body: {}
+	body: {
+		query: {
+			term: {
+				url: encodeURIComponent( url.href )
+			}
+		}
+	}
 }, function( error, response ) {
 	if ( undefined !== typeof response ) {
 		console.log( "Deleted " + response.total + " previous records for " + url.href + " in " + response.took + " ms." );
@@ -50,7 +55,7 @@ collector.collect.run( url.href, function( error, result ) {
 	// set of bulk data to send to ES.
 	for ( var i = 0, x = result.length; i < x; i++ ) {
 		result[ i ].domain = url.hostname;
-		result[ i ].url = url.href;
+		result[ i ].url = encodeURIComponent( url.href );
 
 		bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "record" } } );
 		bulk_body.push( result[ i ] );
