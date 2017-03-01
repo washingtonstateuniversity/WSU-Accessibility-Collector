@@ -27,7 +27,7 @@ module.exports = function( grunt ) {
 				}
 			},
 			a11y_script: {
-				src: [ "./wsu-a11y-collector.js" ],
+				src: [ "./*.js" ],
 				options: {
 					bitwise: true,
 					curly: true,
@@ -40,7 +40,8 @@ module.exports = function( grunt ) {
 					undef: true,
 					unused: true,
 					browser: true, // Define globals exposed by modern browsers.
-					jquery: true   // Define globals exposed by jQuery.
+					jquery: true,  // Define globals exposed by jQuery.
+					node: true
 				}
 			}
 		}

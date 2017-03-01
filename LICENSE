@@ -1,6 +1,6 @@
 WSU A11y Collector
 
-Copyright 2016 by Washington State University
+Copyright 2016-2017 by Washington State University
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,17 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-This program incorporates work covered by the following copyright and
-permission notices:
-
-  The axe-core example code used as the base for wsu-a11y-collector.js was sourced
-  from the axe-core repository on GitHub and is licensed under the Mozilla Public License,
-  version 2. For this reason, this file can be considered dual licensed as MPLv2 and GPLv2
-  or later.
-
-  Original source: https://github.com/dequelabs/axe-core/blob/41086666fd12fc16a0a48a1392c7289a075af84c/doc/examples/phantomjs/axe-phantom.js
-  GNU GPL/MPL Guidelines: https://www.gnu.org/licenses/license-list.en.html#MPL-2.0
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
