@@ -22,6 +22,17 @@ collector.elastic = new elasticsearch.Client( {
 	log: "error"
 } );
 
+// Delete any previous records stored for this URL.
+collector.elastic.deleteByQuery( {
+	index: "a11y-scan",
+    q: "url:" + encodeURIComponent( url ),
+	body: {}
+}, function( error, response ) {
+	if ( undefined !== typeof response ) {
+		console.log( "Deleted " + response.total + " previous records for " + url + " in " + response.took + " ms." );
+	}
+} );
+
 collector.collect.run( url, function( error, result ) {
 	if ( error ) {
 		return console.error( error.message );
