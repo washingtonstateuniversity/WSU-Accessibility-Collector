@@ -18,7 +18,7 @@ var createIndex = function() {
 				record: {
 					properties: {
 						url: {
-							type: "text"
+							type: "keyword"
 						},
 						domain: {
 							type: "keyword"
@@ -50,7 +50,7 @@ var createIndex = function() {
 				url: {
 					properties: {
 						url: {
-							type: "text"
+							type: "keyword"
 						},
 						domain: {
 							type: "keyword"
