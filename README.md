@@ -5,7 +5,7 @@ Scans and collects accessibility data for a set of URLs.
 ## Requirements
 
 * Node 7.x or later.
-* Elasticsearch 5.x or later.
+* Elasticsearch 5.2.x or later.
 
 ## Configuration
 
