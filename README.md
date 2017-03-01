@@ -20,4 +20,4 @@ Once configured, run `node setup_es.js` to create the index and define type mapp
 
 ## Ongoing Use
 
-`node wsu-a11y-collector.js`
+`node index.js https://wsu.edu`
