@@ -5,6 +5,8 @@ if ( process.argv.length < 3 ) {
 	process.exit();
 }
 
+require( "dotenv" ).config();
+
 var collector = {};
 var pa11y = require( "pa11y" );
 var elasticsearch = require( "elasticsearch" );
@@ -22,13 +24,13 @@ collector.collect = pa11y( {
 } );
 
 collector.elastic = new elasticsearch.Client( {
-	host: "https://elastic.wsu.edu",
+	host: process.env.ES_HOST,
 	log: "error"
 } );
 
 // Delete any previous records stored for this URL.
 collector.elastic.deleteByQuery( {
-	index: "a11y-scan",
+	index: process.env.ES_INDEX,
     q: "url:" + encodeURIComponent( url.href ),
 	body: {}
 }, function( error, response ) {
@@ -50,7 +52,7 @@ collector.collect.run( url.href, function( error, result ) {
 		result[ i ].domain = url.hostname;
 		result[ i ].url = url.href;
 
-		bulk_body.push( { index: { _index: "a11y-scan", _type: "scan-record" } } );
+		bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "record" } } );
 		bulk_body.push( result[ i ] );
 	}
 

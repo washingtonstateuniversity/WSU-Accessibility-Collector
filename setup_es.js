@@ -1,16 +1,18 @@
 "use strict";
 
+require( "dotenv" ).config();
+
 var elastic = {};
 var elasticsearch = require( "elasticsearch" );
 
 elastic.client = new elasticsearch.Client( {
-	host: "https://elastic.wsu.edu",
+	host: process.env.ES_HOST,
 	log: "error"
 } );
 
 var createIndex = function() {
 	elastic.client.indices.create( {
-		index: "a11y-again",
+		index: process.env.ES_INDEX,
 		body: {
 			mappings: {
 				record: {
@@ -75,10 +77,10 @@ var createIndex = function() {
 };
 
 elastic.client.indices.exists( {
-	index: "a11y-again"
+	index: process.env.ES_INDEX
 }, function( error, result ) {
 	if ( true === result ) {
-		console.log( "Index already exists, mapping cannot be recreated." );
+		console.log( "Index " + process.env.ES_INDEX + " already exists, mapping cannot be recreated." );
 		process.exit();
 	} else {
 		createIndex();

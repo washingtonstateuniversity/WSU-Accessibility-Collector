@@ -4,6 +4,7 @@
   "description": "Scans and collects accessibility data for a given set of URLs",
   "main": "wsu-a11y-collector.js",
   "dependencies": {
+    "dotenv": "^4.0.0",
     "elasticsearch": "^12.1.3",
     "pa11y": "^4.6.0",
     "url": "^0.11.0",
