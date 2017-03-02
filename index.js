@@ -15,6 +15,8 @@ var url = parse_url.parse( process.argv[ 2 ] );
 
 collector.collect = pa11y( {
 	standard: "WCAG2AA",
+	timeout: 3000,
+	wait: 1000,
 	page: {
 		viewport: {
 			width: 1366,
