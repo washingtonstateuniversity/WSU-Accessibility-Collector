@@ -17,6 +17,7 @@ Configuration is managed through a `.env` file located inside the project direct
 
 * `ES_HOST` defines the hostname of the Elasticsearch instance.
 * `ES_INDEX` defines the index name that wsu-a11y-collector should create and use for data storage.
+* `ES_URL_INDEX` defines the index used by the WSU Web Crawler to store URL data.
 
 ## Setup
 
