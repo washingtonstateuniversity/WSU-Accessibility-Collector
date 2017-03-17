@@ -137,7 +137,8 @@ var logScanDate = function( url_data ) {
 		console.log( "" );
 		queueScan();
 	}, function( error ) {
-		reject( "Error: " + error.message );
+		console.log( "Error: " + error.message );
+		queueScan();
 	} );
 };
 
