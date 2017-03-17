@@ -1,5 +1,6 @@
 "use strict";
 
+var Promise = require( "promise" );
 var es = require( "elasticsearch" );
 var pa11y = require( "pa11y" );
 
