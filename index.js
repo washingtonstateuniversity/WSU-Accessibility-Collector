@@ -57,6 +57,10 @@ var scanAccessibility = function( url_data ) {
 				reject( error.message );
 			}
 
+			if ( "undefined" === typeof result ) {
+				reject( "Scanning failed or had 0 results for " + url_data.url );
+			}
+
 			var bulk_body = [];
 
 			// Append domain and URL information to each result and build a
