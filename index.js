@@ -71,6 +71,9 @@ var scanAccessibility = function( url_data ) {
 			// set of bulk data to send to ES.
 			for ( var i = 0, x = result.length; i < x; i++ ) {
 
+				result[ i ].domain = url_data.domain;
+				result[ i ].url = url_data.url;
+
 				// Create a single document of the "record type" for every record
 				// returned against a URL.
 				bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "record" } } );
@@ -116,7 +119,8 @@ var getURL = function() {
 			} else {
 				var url_data = {
 					id: response.hits.hits[ 0 ]._id,
-					url: response.hits.hits[ 0 ]._source.url
+					url: response.hits.hits[ 0 ]._source.url,
+					domain: response.hits.hits[ 0 ]._source.domain
 				};
 				console.log( "Retrieved URL to scan" );
 				resolve( url_data );
