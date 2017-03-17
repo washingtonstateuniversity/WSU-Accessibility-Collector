@@ -49,17 +49,19 @@ var deleteAccessibilityRecord = function( url_data ) {
 // Scans a URL for accessibility issues using Pa11y and logs
 // these results to an ES index.
 var scanAccessibility = function( url_data ) {
-	return new Promise( function( resolve, reject ) {
+	return new Promise( function( resolve ) {
 		console.log( "Scanning " + url_data.url );
 
 		scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
-				reject( error.message );
+				console.log( error.message );
+				resolve( url_data );
 				return;
 			}
 
 			if ( "undefined" === typeof result ) {
-				reject( "Scanning failed or had 0 results for " + url_data.url );
+				console.log( "Scanning failed or had 0 results for " + url_data.url );
+				resolve( url_data );
 				return;
 			}
 
@@ -82,7 +84,8 @@ var scanAccessibility = function( url_data ) {
 					console.log( "Accessibility scan on " + url_data.url + " took " + response.took + "ms and logged " + response.items.length + " records." );
 					resolve( url_data );
 				} else {
-					reject( err );
+					console.log( err );
+					resolve( url_data );
 				}
 			} );
 		} );
