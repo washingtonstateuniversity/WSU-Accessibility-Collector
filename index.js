@@ -131,10 +131,12 @@ var logScanDate = function( url_data ) {
 				last_a11y_scan: d.getTime()
 			}
 		}
-	}, function( error, response ) {
+	} ).then( function() {
 		console.log( "Scan complete" );
 		console.log( "" );
 		queueScan();
+	}, function( error ) {
+		reject( "Error: " + error.message );
 	} );
 };
 
