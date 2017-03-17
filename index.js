@@ -1,11 +1,9 @@
 "use strict";
 
-require( "dotenv" ).config();
-
-var collector = {};
-var pa11y = require( "pa11y" );
 var es = require( "elasticsearch" );
-var parse_url = require( "url" );
+var pa11y = require( "pa11y" );
+
+require( "dotenv" ).config();
 
 var elastic = new es.Client( {
 	host: process.env.ES_HOST,
@@ -23,18 +21,6 @@ var scanner = pa11y( {
 		}
 	}
 } );
-
-//var url = parse_url.parse( process.argv[ 2 ] );
-
-// Get a batch of URLs to be scanned from the URL index
-// Loop through each set of urls
-//     Scan URL for a11y issues
-//     Store issues in bulk for URL
-//     Log "last updated" for a11y scan
-//     Wait 2 seconds
-// Bulk update URLs with last updated dates
-// Wait 2 seconds
-// Repeat
 
 var deleteAccessibilityRecord = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
