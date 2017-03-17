@@ -55,10 +55,12 @@ var scanAccessibility = function( url_data ) {
 		scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
 				reject( error.message );
+				return;
 			}
 
 			if ( "undefined" === typeof result ) {
 				reject( "Scanning failed or had 0 results for " + url_data.url );
+				return;
 			}
 
 			var bulk_body = [];
