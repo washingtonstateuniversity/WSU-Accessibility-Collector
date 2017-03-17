@@ -61,6 +61,7 @@ var scanAccessibility = function( url_data ) {
 			// Append domain and URL information to each result and build a
 			// set of bulk data to send to ES.
 			for ( var i = 0, x = result.length; i < x; i++ ) {
+
 				// Create a single document of the "record type" for every record
 				// returned against a URL.
 				bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "record" } } );
