@@ -8,6 +8,8 @@ When errors (records) are found for a given URL, they are stored in an Elasticse
 
 ## Requirements
 
+This tool works alongside [WSU Web Crawler](https://github.com/washingtonstateuniversity/WSU-Web-Crawler), which harvests URLs and logs them in a separate Elasticsearch index for future processing. This should be setup and URLs should be indexed before the WSU A11y Collector is started.
+
 * Node 7.x or later.
 * Elasticsearch 5.2.x or later.
 
@@ -21,10 +23,8 @@ Configuration is managed through a `.env` file located inside the project direct
 
 ## Setup
 
-Once configured, run `node setup_es.js` to create the index and define type mappings for records and urls.
+Once configured, run `node setup_es.js` to create the index and define type mappings for accessibility records.
 
-## Ongoing Use
+## Start
 
-Run the script with a single URL as the argument
-
-* `node index.js https://wsu.edu`
+Run `node index.js` to start the script. As long as URLs exist to be scanned in the index created by WSU Web Crawler, then the script will continue scanning them each at 1.5 second intervals.
