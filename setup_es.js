@@ -37,7 +37,7 @@ var createIndex = function() {
 							type: "text"
 						},
 						selector: {
-							type: "text"
+							type: "keyword"
 						},
 						type: {
 							type: "keyword"
