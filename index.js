@@ -50,7 +50,7 @@ var scanAccessibility = function( url_data ) {
 
 		scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
-				return console.error( error.message );
+				reject( error.message );
 			}
 
 			var bulk_body = [];
@@ -150,6 +150,7 @@ var processScan = function() {
 		.then( logScanDate )
 		.catch( function( error ) {
 			console.log( error );
+			queueScan();
 		} );
 };
 
