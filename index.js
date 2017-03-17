@@ -22,6 +22,7 @@ var scanner = pa11y( {
 	}
 } );
 
+// Deletes the existing accessibility records for a URL from the ES index.
 var deleteAccessibilityRecord = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
 		elastic.deleteByQuery( {
@@ -44,6 +45,8 @@ var deleteAccessibilityRecord = function( url_data ) {
 	} );
 }
 
+// Scans a URL for accessibility issues using Pa11y and logs
+// these results to an ES index.
 var scanAccessibility = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
 		console.log( "Scanning " + url_data.url );
@@ -78,6 +81,7 @@ var scanAccessibility = function( url_data ) {
 	} );
 }
 
+// Retireves the next URL that should be scanned from the ES index.
 var getURL = function() {
 	return new Promise( function( resolve, reject ) {
 		elastic.search( {
@@ -112,6 +116,8 @@ var getURL = function() {
 	} );
 };
 
+// Logs the completion of a scan by updating the last updated
+// date in the URL index.
 var logScanDate = function( url_data ) {
 	var d = new Date();
 
@@ -131,6 +137,9 @@ var logScanDate = function( url_data ) {
 	} );
 }
 
+// Manages the scan of an individual URL. Triggers the deletion of
+// previous associated records and then triggers the collection of
+// new accessibility data.
 var scanURL = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
@@ -144,6 +153,7 @@ var scanURL = function( url_data ) {
 	} );
 };
 
+// Manages the process of the scan from start to finish.
 var processScan = function() {
 	getURL()
 		.then( scanURL )
@@ -154,9 +164,11 @@ var processScan = function() {
 		} );
 };
 
+// Queues a new accessibility scan for collection.
 var queueScan = function() {
 	console.log( "Queue next URL for scan." );
 	setTimeout( processScan, 1500 );
 };
 
+// Start things up immediately on run.
 queueScan();
