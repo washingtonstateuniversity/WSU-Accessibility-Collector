@@ -1,19 +1,17 @@
 "use strict";
 
-if ( process.argv.length < 3 ) {
-	console.log( "Please specify a URL to scan." );
-	process.exit();
-}
+var Promise = require( "promise" );
+var es = require( "elasticsearch" );
+var pa11y = require( "pa11y" );
 
 require( "dotenv" ).config();
 
-var collector = {};
-var pa11y = require( "pa11y" );
-var elasticsearch = require( "elasticsearch" );
-var parse_url = require( "url" );
-var url = parse_url.parse( process.argv[ 2 ] );
+var elastic = new es.Client( {
+	host: process.env.ES_HOST,
+	log: "error"
+} );
 
-collector.collect = pa11y( {
+var scanner = pa11y( {
 	standard: "WCAG2AA",
 	timeout: 6000,
 	wait: 1000,
@@ -25,62 +23,170 @@ collector.collect = pa11y( {
 	}
 } );
 
-collector.elastic = new elasticsearch.Client( {
-	host: process.env.ES_HOST,
-	log: "error"
-} );
+// Deletes the existing accessibility records for a URL from the ES index.
+var deleteAccessibilityRecord = function( url_data ) {
+	return new Promise( function( resolve, reject ) {
+		elastic.deleteByQuery( {
+			index: process.env.ES_INDEX,
+			body: {
+				query: {
+					term: {
+						url: encodeURIComponent( url_data.url )
+					}
+				}
+			}
+		}, function( error, response ) {
+			if ( undefined !== typeof response ) {
+				console.log( "Deleted " + response.total + " previous records for " + url_data.url + " in " + response.took + " ms." );
+				resolve( url_data );
+			} else {
+				reject( "Error deleting accessibility records for " + url_data.url );
+			}
+		} );
+	} );
+};
 
-// Delete any previous records stored for this URL as either
-// "record" or "url" document types.
-collector.elastic.deleteByQuery( {
-	index: process.env.ES_INDEX,
-	body: {
-		query: {
-			term: {
-				url: encodeURIComponent( url.href )
+// Scans a URL for accessibility issues using Pa11y and logs
+// these results to an ES index.
+var scanAccessibility = function( url_data ) {
+	return new Promise( function( resolve ) {
+		console.log( "Scanning " + url_data.url );
+
+		scanner.run( url_data.url, function( error, result ) {
+			if ( error ) {
+				console.log( error.message );
+				resolve( url_data );
+				return;
+			}
+
+			if ( "undefined" === typeof result ) {
+				console.log( "Scanning failed or had 0 results for " + url_data.url );
+				resolve( url_data );
+				return;
+			}
+
+			var bulk_body = [];
+
+			// Append domain and URL information to each result and build a
+			// set of bulk data to send to ES.
+			for ( var i = 0, x = result.length; i < x; i++ ) {
+
+				result[ i ].domain = url_data.domain;
+				result[ i ].url = url_data.url;
+
+				// Create a single document of the "record type" for every record
+				// returned against a URL.
+				bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "record" } } );
+				bulk_body.push( result[ i ] );
+			}
+
+			elastic.bulk( {
+				body: bulk_body
+			}, function( err, response ) {
+				if ( undefined !== typeof response ) {
+					console.log( "Accessibility scan on " + url_data.url + " took " + response.took + "ms and logged " + response.items.length + " records." );
+					resolve( url_data );
+				} else {
+					console.log( err );
+					resolve( url_data );
+				}
+			} );
+		} );
+	} );
+};
+
+// Retireves the next URL that should be scanned from the ES index.
+var getURL = function() {
+	return new Promise( function( resolve, reject ) {
+		elastic.search( {
+			index: process.env.ES_URL_INDEX,
+			type: "url",
+			body: {
+				size: 1,
+				query: {
+					bool: {
+						must_not: {
+							exists: {
+								field: "last_a11y_scan"
+							}
+						}
+					}
+				}
+			}
+		} ).then( function( response ) {
+			if ( 0 === response.hits.hits.length ) {
+				reject( "No URLs to scan." );
+			} else {
+				var url_data = {
+					id: response.hits.hits[ 0 ]._id,
+					url: response.hits.hits[ 0 ]._source.url,
+					domain: response.hits.hits[ 0 ]._source.domain
+				};
+				console.log( "Retrieved URL to scan" );
+				resolve( url_data );
+			}
+		}, function( error ) {
+			reject( "Error: " + error.message );
+		} );
+	} );
+};
+
+// Logs the completion of a scan by updating the last updated
+// date in the URL index.
+var logScanDate = function( url_data ) {
+	var d = new Date();
+
+	elastic.update( {
+		index: process.env.ES_URL_INDEX,
+		type: "url",
+		id: url_data.id,
+		body: {
+			doc: {
+				last_a11y_scan: d.getTime()
 			}
 		}
-	}
-}, function( error, response ) {
-	if ( undefined !== typeof response ) {
-		console.log( "Deleted " + response.total + " previous records for " + url.href + " in " + response.took + " ms." );
-	}
-} );
-
-collector.collect.run( url.href, function( error, result ) {
-	if ( error ) {
-		return console.error( error.message );
-	}
-
-	var bulk_body = [];
-	var urls_captured = [];
-
-	// Append domain and URL information to each result and build a
-	// set of bulk data to send to ES.
-	for ( var i = 0, x = result.length; i < x; i++ ) {
-		result[ i ].domain = url.hostname;
-		result[ i ].url = encodeURIComponent( url.href );
-
-		// Create a single document of the "url" type for each unique URL.
-		if ( false === ( url.href in urls_captured ) ) {
-			urls_captured[ url.href ] = 1;
-			bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "url" } } );
-			bulk_body.push( { domain: result[ i ].domain, url: result[ i ].url } );
-		}
-
-		// Create a single document of the "record type" for every record
-		// returned against a URL.
-		bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "record" } } );
-		bulk_body.push( result[ i ] );
-	}
-
-	collector.elastic.bulk( {
-		body: bulk_body
-	}, function( err, response ) {
-		if ( undefined !== typeof response ) {
-			console.log( "Accessibility scan on " + url.href + " took " + response.took + "ms and logged " + response.items.length + " records." );
-		} else {
-			console.log( err );
-		}
+	} ).then( function() {
+		console.log( "Scan complete" );
+		console.log( "" );
+		queueScan();
+	}, function( error ) {
+		console.log( "Error: " + error.message );
+		queueScan();
 	} );
-} );
+};
+
+// Manages the scan of an individual URL. Triggers the deletion of
+// previous associated records and then triggers the collection of
+// new accessibility data.
+var scanURL = function( url_data ) {
+	return new Promise( function( resolve, reject ) {
+		deleteAccessibilityRecord( url_data )
+			.then( scanAccessibility )
+			.then( function( url_data ) {
+				resolve( url_data );
+			} )
+			.catch( function( error ) {
+				reject( error );
+			} );
+	} );
+};
+
+// Manages the process of the scan from start to finish.
+var processScan = function() {
+	getURL()
+		.then( scanURL )
+		.then( logScanDate )
+		.catch( function( error ) {
+			console.log( error );
+			queueScan();
+		} );
+};
+
+// Queues a new accessibility scan for collection.
+var queueScan = function() {
+	console.log( "Queue next URL for scan." );
+	setTimeout( processScan, 1500 );
+};
+
+// Start things up immediately on run.
+queueScan();

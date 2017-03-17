@@ -37,29 +37,12 @@ var createIndex = function() {
 							type: "text"
 						},
 						selector: {
-							type: "text"
+							type: "keyword"
 						},
 						type: {
 							type: "keyword"
 						},
 						typeCode: {
-							type: "integer"
-						}
-					}
-				},
-				url: {
-					properties: {
-						url: {
-							type: "keyword"
-						},
-						domain: {
-							type: "keyword"
-						},
-						lastscanned: {
-							type: "date",
-							format: "epoch_millis"
-						},
-						force: {
 							type: "integer"
 						}
 					}
