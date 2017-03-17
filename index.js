@@ -43,7 +43,7 @@ var deleteAccessibilityRecord = function( url_data ) {
 			}
 		} );
 	} );
-}
+};
 
 // Scans a URL for accessibility issues using Pa11y and logs
 // these results to an ES index.
@@ -79,7 +79,7 @@ var scanAccessibility = function( url_data ) {
 			} );
 		} );
 	} );
-}
+};
 
 // Retireves the next URL that should be scanned from the ES index.
 var getURL = function() {
@@ -106,7 +106,7 @@ var getURL = function() {
 				var url_data = {
 					id: response.hits.hits[ 0 ]._id,
 					url: response.hits.hits[ 0 ]._source.url
-				}
+				};
 				console.log( "Retrieved URL to scan" );
 				resolve( url_data );
 			}
@@ -135,7 +135,7 @@ var logScanDate = function( url_data ) {
 		console.log( "" );
 		queueScan();
 	} );
-}
+};
 
 // Manages the scan of an individual URL. Triggers the deletion of
 // previous associated records and then triggers the collection of
