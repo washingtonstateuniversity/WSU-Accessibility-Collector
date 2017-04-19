@@ -44,6 +44,7 @@ module.exports = function( grunt ) {
 					predef: [
 						"Promise"
 					],
+					esversion: 6,
 					node: true
 				}
 			}

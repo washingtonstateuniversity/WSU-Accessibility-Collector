@@ -2,6 +2,7 @@
 
 var es = require( "elasticsearch" );
 var pa11y = require( "pa11y" );
+const util = require( "util" );
 
 require( "dotenv" ).config();
 
@@ -36,7 +37,7 @@ var deleteAccessibilityRecord = function( url_data ) {
 			}
 		}, function( error, response ) {
 			if ( undefined !== typeof response ) {
-				console.log( "Deleted " + response.total + " previous records for " + url_data.url + " in " + response.took + " ms." );
+				util.log( "Deleted " + response.total + " previous records in " + response.took + " ms." );
 				resolve( url_data );
 			} else {
 				reject( "Error deleting accessibility records for " + url_data.url );
@@ -49,17 +50,15 @@ var deleteAccessibilityRecord = function( url_data ) {
 // these results to an ES index.
 var scanAccessibility = function( url_data ) {
 	return new Promise( function( resolve ) {
-		console.log( "Scanning " + url_data.url );
-
 		scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
-				console.log( error.message );
+				util.log( error.message );
 				resolve( url_data );
 				return;
 			}
 
 			if ( "undefined" === typeof result ) {
-				console.log( "Scanning failed or had 0 results for " + url_data.url );
+				util.log( "Scanning failed or had 0 results for " + url_data.url );
 				resolve( url_data );
 				return;
 			}
@@ -83,10 +82,10 @@ var scanAccessibility = function( url_data ) {
 				body: bulk_body
 			}, function( err, response ) {
 				if ( undefined !== typeof response ) {
-					console.log( "Accessibility scan on " + url_data.url + " took " + response.took + "ms and logged " + response.items.length + " records." );
+					util.log( "Scan complete: Logged " + response.items.length + " records in " + response.took + "ms." );
 					resolve( url_data );
 				} else {
-					console.log( err );
+					util.log( err );
 					resolve( url_data );
 				}
 			} );
@@ -121,7 +120,7 @@ var getURL = function() {
 					url: response.hits.hits[ 0 ]._source.url,
 					domain: response.hits.hits[ 0 ]._source.domain
 				};
-				console.log( "Retrieved URL to scan" );
+
 				resolve( url_data );
 			}
 		}, function( error ) {
@@ -145,11 +144,9 @@ var logScanDate = function( url_data ) {
 			}
 		}
 	} ).then( function() {
-		console.log( "Scan complete" );
-		console.log( "" );
 		queueScan();
 	}, function( error ) {
-		console.log( "Error: " + error.message );
+		util.log( "Error: " + error.message );
 		queueScan();
 	} );
 };
@@ -158,6 +155,8 @@ var logScanDate = function( url_data ) {
 // previous associated records and then triggers the collection of
 // new accessibility data.
 var scanURL = function( url_data ) {
+	util.log( "Scan " + url_data.url );
+
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
 			.then( scanAccessibility )
@@ -176,14 +175,13 @@ var processScan = function() {
 		.then( scanURL )
 		.then( logScanDate )
 		.catch( function( error ) {
-			console.log( error );
+			util.log( error );
 			queueScan();
 		} );
 };
 
 // Queues a new accessibility scan for collection.
 var queueScan = function() {
-	console.log( "Queue next URL for scan." );
 	setTimeout( processScan, 1500 );
 };
 
