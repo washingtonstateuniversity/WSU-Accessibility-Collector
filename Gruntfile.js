@@ -41,6 +41,10 @@ module.exports = function( grunt ) {
 					unused: true,
 					browser: true, // Define globals exposed by modern browsers.
 					jquery: true,  // Define globals exposed by jQuery.
+					predef: [
+						"Promise"
+					],
+					esversion: 6,
 					node: true
 				}
 			}

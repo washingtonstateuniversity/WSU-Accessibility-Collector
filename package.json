@@ -24,5 +24,8 @@
     "grunt": "^1.0.1",
     "grunt-contrib-jshint": "^1.1.0",
     "grunt-jscs": "^3.0.1"
+  },
+  "scripts": {
+    "a11y-scan" : "node index.js"
   }
 }
