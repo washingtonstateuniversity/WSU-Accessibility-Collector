@@ -13,12 +13,15 @@ var elastic = new es.Client( {
 
 var scanner = pa11y( {
 	standard: "WCAG2AA",
-	timeout: 6000,
-	wait: 1000,
+	timeout: 10000,
+	wait: 10,
 	page: {
 		viewport: {
 			width: 1366,
 			height: 768
+		},
+		settings : {
+			resourceTimeout: 10000
 		}
 	}
 } );
