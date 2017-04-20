@@ -13,12 +13,15 @@ var elastic = new es.Client( {
 
 var scanner = pa11y( {
 	standard: "WCAG2AA",
-	timeout: 6000,
-	wait: 1000,
+	timeout: 10000,
+	wait: 10,
 	page: {
 		viewport: {
 			width: 1366,
 			height: 768
+		},
+		settings : {
+			resourceTimeout: 10000
 		}
 	}
 } );
@@ -52,7 +55,7 @@ var scanAccessibility = function( url_data ) {
 	return new Promise( function( resolve ) {
 		scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
-				util.log( "Error scanning " + url_data.url );
+				util.log( error.message );
 				resolve( url_data );
 				return;
 			}
@@ -93,7 +96,7 @@ var scanAccessibility = function( url_data ) {
 	} );
 };
 
-// Retireves the next URL that should be scanned from the ES index.
+// Retrieves the next URL that should be scanned from the ES index.
 var getURL = function() {
 	return new Promise( function( resolve, reject ) {
 		elastic.search( {
@@ -160,6 +163,9 @@ var scanURL = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
 			.then( scanAccessibility )
+			.catch( function( error ) {
+				util.log( error );
+			} )
 			.then( function( url_data ) {
 				resolve( url_data );
 			} )
@@ -173,6 +179,9 @@ var scanURL = function( url_data ) {
 var processScan = function() {
 	getURL()
 		.then( scanURL )
+		.catch( function( error ) {
+			util.log( error );
+		} )
 		.then( logScanDate )
 		.catch( function( error ) {
 			util.log( error );
