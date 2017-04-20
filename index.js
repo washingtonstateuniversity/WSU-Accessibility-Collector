@@ -20,7 +20,7 @@ var scanner = pa11y( {
 			width: 1366,
 			height: 768
 		},
-		settings : {
+		settings: {
 			resourceTimeout: 10000
 		}
 	}
