@@ -52,7 +52,7 @@ var scanAccessibility = function( url_data ) {
 	return new Promise( function( resolve ) {
 		scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
-				util.log( error.message );
+				util.log( "Error scanning " + url_data.url );
 				resolve( url_data );
 				return;
 			}
