@@ -26,6 +26,9 @@ var scanner = pa11y( {
 	}
 } );
 
+// These subdomains are flagged to not be scanned.
+var flagged_domains = process.env.SKIP_DOMAINS.split( "," );
+
 // Deletes the existing accessibility records for a URL from the ES index.
 var deleteAccessibilityRecord = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
@@ -53,6 +56,12 @@ var deleteAccessibilityRecord = function( url_data ) {
 // these results to an ES index.
 var scanAccessibility = function( url_data ) {
 	return new Promise( function( resolve ) {
+		if ( -1 < flagged_domains.indexOf( url_data.domain ) ) {
+			util.log( "Error: Skipping flagged domain " + url_data.domain );
+			resolve( url_data );
+			return;
+		}
+
 		scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
 				util.log( error.message );
@@ -184,9 +193,6 @@ var scanURL = function( url_data ) {
 var processScan = function() {
 	getURL()
 		.then( scanURL )
-		.catch( function( error ) {
-			util.log( error );
-		} )
 		.then( logScanDate )
 		.catch( function( error ) {
 			util.log( error );
