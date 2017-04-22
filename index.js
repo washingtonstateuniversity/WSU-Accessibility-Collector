@@ -110,6 +110,11 @@ var getURL = function() {
 							exists: {
 								field: "last_a11y_scan"
 							}
+						},
+						must: {
+							match: {
+								status_code: 200
+							}
 						}
 					}
 				}
