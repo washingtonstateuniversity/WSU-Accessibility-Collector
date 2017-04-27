@@ -21,7 +21,8 @@ var scanner = pa11y( {
 			height: 768
 		},
 		settings: {
-			resourceTimeout: 10000
+			resourceTimeout: 10000,
+			userAgent: "WSU Accessibility Crawler: web.wsu.edu/crawler/"
 		}
 	}
 } );
