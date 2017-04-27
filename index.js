@@ -216,7 +216,7 @@ var processScan = function() {
 
 // Queues a new accessibility scan for collection.
 var queueScan = function() {
-	setTimeout( processScan, 1500 );
+	setTimeout( processScan, 100 );
 };
 
 // Start things up immediately on run.
