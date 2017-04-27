@@ -21,10 +21,13 @@ var scanner = pa11y( {
 			height: 768
 		},
 		settings: {
-			resourceTimeout: 10000
+			resourceTimeout: 10000,
+			userAgent: "WSU Accessibility Crawler: web.wsu.edu/crawler/"
 		}
 	}
 } );
+
+var most_recent_url_id = "";
 
 // These subdomains are flagged to not be scanned.
 var flagged_domains = process.env.SKIP_DOMAINS.split( "," );
@@ -115,16 +118,25 @@ var getURL = function() {
 				size: 1,
 				query: {
 					bool: {
-						must_not: {
-							exists: {
-								field: "last_a11y_scan"
+						must_not: [
+							{
+								exists: {
+									field: "last_a11y_scan"
+								}
+							},
+							{
+								ids: {
+									values: most_recent_url_id
+								}
 							}
-						},
-						must: {
-							match: {
-								status_code: 200
+						],
+						must: [
+							{
+								match: {
+									status_code: 200
+								}
 							}
-						}
+						]
 					}
 				}
 			}
@@ -137,6 +149,8 @@ var getURL = function() {
 					url: response.hits.hits[ 0 ]._source.url,
 					domain: response.hits.hits[ 0 ]._source.domain
 				};
+
+				most_recent_url_id = url_data.id;
 
 				resolve( url_data );
 			}
@@ -202,7 +216,7 @@ var processScan = function() {
 
 // Queues a new accessibility scan for collection.
 var queueScan = function() {
-	setTimeout( processScan, 1500 );
+	setTimeout( processScan, 100 );
 };
 
 // Start things up immediately on run.
