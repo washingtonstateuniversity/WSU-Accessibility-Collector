@@ -40,7 +40,7 @@ var deleteAccessibilityRecord = function( url_data ) {
 			body: {
 				query: {
 					term: {
-						url: encodeURIComponent( url_data.url )
+						url: url_data.url
 					}
 				}
 			}
