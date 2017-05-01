@@ -129,6 +129,7 @@ var getURL = function() {
 			index: process.env.ES_URL_INDEX,
 			type: "url",
 			body: [
+
 				// Query for URLs that have never been scanned.
 				{},
 				{
@@ -152,13 +153,14 @@ var getURL = function() {
 					},
 					size: 5
 				},
+
 				// Query for least recently scanned URLs.
 				{},
 				{
-					sort : [
+					sort: [
 						{
-							last_a11y_scan : {
-								"order" : "asc"
+							last_a11y_scan: {
+								"order": "asc"
 							}
 						}
 					],
@@ -185,12 +187,12 @@ var getURL = function() {
 			if ( 2 !== response.responses.length ) {
 				reject( "Invalid response set from multisearch." );
 			} else {
-				if ( 0 !== response.responses[0].hits.hits.length ) {
-					url_cache = url_cache.concat( response.responses[0].hits.hits );
+				if ( 0 !== response.responses[ 0 ].hits.hits.length ) {
+					url_cache = url_cache.concat( response.responses[ 0 ].hits.hits );
 				}
 
-				if ( 0 !== response.responses[1].hits.hits.length ) {
-					url_cache = url_cache.concat( response.responses[1].hits.hits );
+				if ( 0 !== response.responses[ 1 ].hits.hits.length ) {
+					url_cache = url_cache.concat( response.responses[ 1 ].hits.hits );
 				}
 
 				util.log( "Query for URLs to scan found " + url_cache.length + "." );
