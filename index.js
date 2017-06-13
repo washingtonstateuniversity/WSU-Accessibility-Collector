@@ -6,6 +6,11 @@ const util = require( "util" );
 
 require( "dotenv" ).config();
 
+var wsu_a11y_collector = {
+	url_cache: [],
+	flagged_domains: [] // Subdomains flagged to not be scanned.
+};
+
 /**
  * Retrieve an instance of the Elasticsearch client.
  *
@@ -41,11 +46,6 @@ function getScanner() {
 	} );
 }
 
-var url_cache = [];
-
-// These subdomains are flagged to not be scanned.
-var flagged_domains = process.env.SKIP_DOMAINS.split( "," );
-
 // Deletes the existing accessibility records for a URL from the ES index.
 var deleteAccessibilityRecord = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
@@ -75,7 +75,7 @@ var deleteAccessibilityRecord = function( url_data ) {
 // these results to an ES index.
 var scanAccessibility = function( url_data ) {
 	return new Promise( function( resolve ) {
-		if ( -1 < flagged_domains.indexOf( url_data.domain ) ) {
+		if ( -1 < wsu_a11y_collector.flagged_domains.indexOf( url_data.domain ) ) {
 			util.log( "Error: Skipping flagged domain " + url_data.domain );
 			resolve( url_data );
 			return;
@@ -133,11 +133,11 @@ var getURL = function() {
 	return new Promise( function( resolve, reject ) {
 
 		// Check for a URL in the existing cache from our last lookup.
-		if ( 0 !== url_cache.length ) {
+		if ( 0 !== wsu_a11y_collector.url_cache.length ) {
 			var url_data = {
-				id: url_cache[ 0 ]._id,
-				url: url_cache[ 0 ]._source.url,
-				domain: url_cache[ 0 ]._source.domain
+				id: wsu_a11y_collector.url_cache[ 0 ]._id,
+				url: wsu_a11y_collector.url_cache[ 0 ]._source.url,
+				domain: wsu_a11y_collector.url_cache[ 0 ]._source.domain
 			};
 			url_cache.shift();
 
@@ -210,24 +210,24 @@ var getURL = function() {
 				reject( "Invalid response set from multisearch." );
 			} else {
 				if ( 0 !== response.responses[ 0 ].hits.hits.length ) {
-					url_cache = url_cache.concat( response.responses[ 0 ].hits.hits );
+					wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[ 0 ].hits.hits );
 				}
 
 				if ( 0 !== response.responses[ 1 ].hits.hits.length ) {
-					url_cache = url_cache.concat( response.responses[ 1 ].hits.hits );
+					wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[ 1 ].hits.hits );
 				}
 
-				util.log( "Query for URLs to scan found " + url_cache.length + "." );
+				util.log( "Query for URLs to scan found " + wsu_a11y_collector.url_cache.length + "." );
 
-				if ( 0 === url_cache.length ) {
+				if ( 0 === wsu_a11y_collector.url_cache.length ) {
 					reject( "No new URLs to scan." );
 				} else {
 					var url_data = {
-						id: url_cache[ 0 ]._id,
-						url: url_cache[ 0 ]._source.url,
-						domain: url_cache[ 0 ]._source.domain
+						id: wsu_a11y_collector.url_cache[ 0 ]._id,
+						url: wsu_a11y_collector.url_cache[ 0 ]._source.url,
+						domain: wsu_a11y_collector.url_cache[ 0 ]._source.domain
 					};
-					url_cache.shift();
+					wsu_a11y_collector.url_cache.shift();
 
 					resolve( url_data );
 				}
