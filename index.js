@@ -6,26 +6,40 @@ const util = require( "util" );
 
 require( "dotenv" ).config();
 
-var elastic = new es.Client( {
-	host: process.env.ES_HOST,
-	log: "error"
-} );
+/**
+ * Retrieve an instance of the Elasticsearch client.
+ *
+ * @returns {es.Client}
+ */
+function getElastic() {
+	return new es.Client( {
+		host: process.env.ES_HOST,
+		log: "error"
+	} );
+}
 
-var scanner = pa11y( {
-	standard: "WCAG2AA",
-	timeout: 10000,
-	wait: 10,
-	page: {
-		viewport: {
-			width: 1366,
-			height: 768
-		},
-		settings: {
-			resourceTimeout: 10000,
-			userAgent: "WSU Accessibility Crawler: web.wsu.edu/crawler/"
+/**
+ * Retrieve an instance of the accessibility scanner.
+ *
+ * @returns {pa11y}
+ */
+function getScanner() {
+	return pa11y( {
+		standard: "WCAG2AA",
+		timeout: 10000,
+		wait: 10,
+		page: {
+			viewport: {
+				width: 1366,
+				height: 768
+			},
+			settings: {
+				resourceTimeout: 10000,
+				userAgent: "WSU Accessibility Crawler: web.wsu.edu/crawler/"
+			}
 		}
-	}
-} );
+	} );
+}
 
 var url_cache = [];
 
@@ -35,6 +49,8 @@ var flagged_domains = process.env.SKIP_DOMAINS.split( "," );
 // Deletes the existing accessibility records for a URL from the ES index.
 var deleteAccessibilityRecord = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
+		var elastic = getElastic();
+
 		elastic.deleteByQuery( {
 			index: process.env.ES_INDEX,
 			body: {
@@ -65,6 +81,8 @@ var scanAccessibility = function( url_data ) {
 			return;
 		}
 
+		var scanner = getScanner();
+
 		scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
 				util.log( error.message );
@@ -92,6 +110,8 @@ var scanAccessibility = function( url_data ) {
 				bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "record" } } );
 				bulk_body.push( result[ i ] );
 			}
+
+			var elastic = getElastic();
 
 			elastic.bulk( {
 				body: bulk_body
@@ -124,6 +144,8 @@ var getURL = function() {
 			resolve( url_data );
 			return;
 		}
+
+		var elastic = getElastic();
 
 		elastic.msearch( {
 			index: process.env.ES_URL_INDEX,
@@ -220,6 +242,8 @@ var getURL = function() {
 // date in the URL index.
 var logScanDate = function( url_data ) {
 	var d = new Date();
+
+	var elastic = getElastic();
 
 	elastic.update( {
 		index: process.env.ES_URL_INDEX,
