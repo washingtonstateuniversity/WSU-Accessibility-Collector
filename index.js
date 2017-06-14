@@ -134,22 +134,22 @@ function populateURLCache() {
 				size: 5
 			}
 		]
-	} ).then( function ( response ) {
+	} ).then( function( response ) {
 		if ( 2 !== response.responses.length ) {
 			util.log( "Error (populateURLCache): Invalid response set from multisearch" );
 		} else {
-			if ( 0 !== response.responses[0].hits.hits.length ) {
-				wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[0].hits.hits );
+			if ( 0 !== response.responses[ 0 ].hits.hits.length ) {
+				wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[ 0 ].hits.hits );
 			}
 
-			if (0 !== response.responses[1].hits.hits.length) {
-				wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[1].hits.hits );
+			if ( 0 !== response.responses[ 1 ].hits.hits.length ) {
+				wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[ 1 ].hits.hits );
 			}
 
 			util.log( "URL Cache: " + wsu_a11y_collector.url_cache.length + " URLs waiting scan" );
 		}
 		closePopulation();
-	}, function ( error ) {
+	}, function( error ) {
 		closePopulation();
 		util.log( "Error (populateURLCache): " + error.message );
 	} );
@@ -161,6 +161,7 @@ function populateURLCache() {
  * @returns {*}
  */
 function getURL() {
+
 	// Check for a URL in the existing cache from our last lookup.
 	if ( 0 !== wsu_a11y_collector.url_cache.length ) {
 		var url_cache = wsu_a11y_collector.url_cache.shift();
