@@ -5,10 +5,9 @@
   "main": "wsu-a11y-collector.js",
   "dependencies": {
     "dotenv": "^4.0.0",
-    "elasticsearch": "^13.0.0-rc2",
-    "pa11y": "^4.6.0",
-    "url": "^0.11.0",
-    "wpapi": "^1.0.0"
+    "elasticsearch": "^13.1.0",
+    "pa11y": "^4.11.0",
+    "url": "^0.11.0"
   },
   "repository": {
     "type": "git",
@@ -26,6 +25,6 @@
     "grunt-jscs": "^3.0.1"
   },
   "scripts": {
-    "a11y-scan" : "node index.js"
+    "a11y-scan": "node index.js"
   }
 }
