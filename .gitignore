@@ -1,3 +1,5 @@
 node_modules
 .env
 *.log
+build-package
+wsu-a11y-collector.tar
