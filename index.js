@@ -137,6 +137,26 @@ function populateURLCache() {
 	setTimeout( populateURLCache, 5000 ); // @todo rethink?
 }
 
+/**
+ * Retrieve the next URL from the URL cache to be scanned.
+ *
+ * @returns {*}
+ */
+function getURL() {
+	// Check for a URL in the existing cache from our last lookup.
+	if ( 0 !== wsu_a11y_collector.url_cache.length ) {
+		var url_cache = wsu_a11y_collector.url_cache.shift();
+
+		return {
+			id: url_cache._id,
+			url: url_cache._source.url,
+			domain: url_cache._source.domain
+		};
+	}
+
+	return false;
+}
+
 // Deletes the existing accessibility records for a URL from the ES index.
 var deleteAccessibilityRecord = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
@@ -216,24 +236,6 @@ var scanAccessibility = function( url_data ) {
 				}
 			} );
 		} );
-	} );
-};
-
-// Retrieves the next set of URLs that should be scanned from the ES index.
-var getURL = function() {
-	return new Promise( function( resolve, reject ) {
-
-		// Check for a URL in the existing cache from our last lookup.
-		if ( 0 !== wsu_a11y_collector.url_cache.length ) {
-			var url_data = {
-				id: wsu_a11y_collector.url_cache[ 0 ]._id,
-				url: wsu_a11y_collector.url_cache[ 0 ]._source.url,
-				domain: wsu_a11y_collector.url_cache[ 0 ]._source.domain
-			};
-			wsu_a11y_collector.url_cache.shift();
-
-			resolve( url_data );
-		}
 	} );
 };
 
