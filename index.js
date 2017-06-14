@@ -139,7 +139,7 @@ var getURL = function() {
 				url: wsu_a11y_collector.url_cache[ 0 ]._source.url,
 				domain: wsu_a11y_collector.url_cache[ 0 ]._source.domain
 			};
-			url_cache.shift();
+			wsu_a11y_collector.url_cache.shift();
 
 			resolve( url_data );
 			return;
