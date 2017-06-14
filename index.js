@@ -176,7 +176,7 @@ function getURL() {
 }
 
 // Deletes the existing accessibility records for a URL from the ES index.
-var deleteAccessibilityRecord = function( url_data ) {
+function deleteAccessibilityRecord( url_data ) {
 	return new Promise( function( resolve, reject ) {
 		var elastic = getElastic();
 
@@ -198,11 +198,11 @@ var deleteAccessibilityRecord = function( url_data ) {
 			}
 		} );
 	} );
-};
+}
 
 // Scans a URL for accessibility issues using Pa11y and logs
 // these results to an ES index.
-var scanAccessibility = function( url_data ) {
+function scanAccessibility( url_data ) {
 	return new Promise( function( resolve ) {
 		if ( -1 < wsu_a11y_collector.flagged_domains.indexOf( url_data.domain ) ) {
 			util.log( "Error: Skipping flagged domain " + url_data.domain );
@@ -255,11 +255,11 @@ var scanAccessibility = function( url_data ) {
 			} );
 		} );
 	} );
-};
+}
 
 // Logs the completion of a scan by updating the last updated
 // date in the URL index.
-var logScanDate = function( url_data ) {
+function logScanDate( url_data ) {
 	var d = new Date();
 
 	var elastic = getElastic();
@@ -278,12 +278,12 @@ var logScanDate = function( url_data ) {
 	}, function( error ) {
 		util.log( "Error: " + error.message );
 	} );
-};
+}
 
 // Manages the scan of an individual URL. Triggers the deletion of
 // previous associated records and then triggers the collection of
 // new accessibility data.
-var scanURL = function( url_data ) {
+function Scan( url_data ) {
 	util.log( "Scan " + url_data.url );
 
 	return new Promise( function( resolve, reject ) {
@@ -296,10 +296,10 @@ var scanURL = function( url_data ) {
 				reject( error );
 			} );
 	} );
-};
+}
 
 // Manages the process of the scan from start to finish.
-var processScan = function() {
+function processScan() {
 	var url_data = getURL();
 
 	if ( false !== url_data ) {
@@ -311,7 +311,7 @@ var processScan = function() {
 	}
 
 	closeScan();
-};
+}
 
 /**
  * Start a new scan process whenever fewer than 10 scans
