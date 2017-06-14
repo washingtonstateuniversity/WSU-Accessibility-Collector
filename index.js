@@ -289,9 +289,6 @@ var scanURL = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
 			.then( scanAccessibility )
-			.catch( function( error ) {
-				util.log( error );
-			} )
 			.then( function( url_data ) {
 				resolve( url_data );
 			} )
