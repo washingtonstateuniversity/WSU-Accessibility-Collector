@@ -27,4 +27,4 @@ Once configured, run `node setup_es.js` to create the index and define type mapp
 
 ## Start
 
-Run `node index.js` to start the script. As long as URLs exist to be scanned in the index created by WSU Web Crawler, then the script will continue scanning them each at 1.5 second intervals.
+Run `node a11y.js` to start the script. As long as URLs exist to be scanned in the index created by WSU Web Crawler, then the script will continue scanning them each at 1.5 second intervals.

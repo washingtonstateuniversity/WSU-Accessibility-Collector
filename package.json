@@ -25,6 +25,6 @@
     "grunt-jscs": "^3.0.1"
   },
   "scripts": {
-    "a11y-scan": "node index.js"
+    "a11y-scan": "node a11y.js"
   }
 }
