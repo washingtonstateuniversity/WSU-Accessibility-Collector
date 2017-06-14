@@ -51,6 +51,92 @@ function getScanner() {
 	} );
 }
 
+/**
+ * Retrieve the next set of URLs used to populate the collector queue and
+ * add it to the url cache.
+ */
+function populateURLCache() {
+	var elastic = getElastic();
+
+	elastic.msearch( {
+		index: process.env.ES_URL_INDEX,
+		type: "url",
+		body: [
+
+			// Query for URLs that have never been scanned.
+			{},
+			{
+				query: {
+					bool: {
+						must_not: [
+							{
+								exists: {
+									field: "last_a11y_scan"
+								}
+							}
+						],
+						must: [
+							{
+								match: {
+									status_code: 200
+								}
+							}
+						]
+					}
+				},
+				size: 5
+			},
+
+			// Query for least recently scanned URLs.
+			{},
+			{
+				sort: [
+					{
+						last_a11y_scan: {
+							"order": "asc"
+						}
+					}
+				],
+				query: {
+					bool: {
+						must: [
+							{
+								exists: {
+									field: "last_a11y_scan"
+								}
+							},
+							{
+								match: {
+									status_code: 200
+								}
+							}
+						]
+					}
+				},
+				size: 5
+			}
+		]
+	} ).then( function ( response ) {
+		if ( 2 !== response.responses.length ) {
+			util.log( "Error (populateURLCache): Invalid response set from multisearch" );
+		} else {
+			if ( 0 !== response.responses[0].hits.hits.length ) {
+				wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[0].hits.hits );
+			}
+
+			if (0 !== response.responses[1].hits.hits.length) {
+				wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[1].hits.hits );
+			}
+
+			util.log( "URL Cache: " + wsu_a11y_collector.url_cache.length + " URLs waiting scan" );
+		}
+	}, function ( error ) {
+		util.log( "Error (populateURLCache): " + error.message );
+	} );
+
+	setTimeout( populateURLCache, 5000 ); // @todo rethink?
+}
+
 // Deletes the existing accessibility records for a URL from the ES index.
 var deleteAccessibilityRecord = function( url_data ) {
 	return new Promise( function( resolve, reject ) {
@@ -147,99 +233,7 @@ var getURL = function() {
 			wsu_a11y_collector.url_cache.shift();
 
 			resolve( url_data );
-			return;
 		}
-
-		var elastic = getElastic();
-
-		elastic.msearch( {
-			index: process.env.ES_URL_INDEX,
-			type: "url",
-			body: [
-
-				// Query for URLs that have never been scanned.
-				{},
-				{
-					query: {
-						bool: {
-							must_not: [
-								{
-									exists: {
-										field: "last_a11y_scan"
-									}
-								}
-							],
-							must: [
-								{
-									match: {
-										status_code: 200
-									}
-								}
-							]
-						}
-					},
-					size: 5
-				},
-
-				// Query for least recently scanned URLs.
-				{},
-				{
-					sort: [
-						{
-							last_a11y_scan: {
-								"order": "asc"
-							}
-						}
-					],
-					query: {
-						bool: {
-							must: [
-								{
-									exists: {
-										field: "last_a11y_scan"
-									}
-								},
-								{
-									match: {
-										status_code: 200
-									}
-								}
-							]
-						}
-					},
-					size: 5
-				}
-			]
-		} ).then( function( response ) {
-			if ( 2 !== response.responses.length ) {
-				reject( "Invalid response set from multisearch." );
-			} else {
-				if ( 0 !== response.responses[ 0 ].hits.hits.length ) {
-					wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[ 0 ].hits.hits );
-				}
-
-				if ( 0 !== response.responses[ 1 ].hits.hits.length ) {
-					wsu_a11y_collector.url_cache = wsu_a11y_collector.url_cache.concat( response.responses[ 1 ].hits.hits );
-				}
-
-				util.log( "Query for URLs to scan found " + wsu_a11y_collector.url_cache.length + "." );
-
-				if ( 0 === wsu_a11y_collector.url_cache.length ) {
-					reject( "No new URLs to scan." );
-				} else {
-					var url_data = {
-						id: wsu_a11y_collector.url_cache[ 0 ]._id,
-						url: wsu_a11y_collector.url_cache[ 0 ]._source.url,
-						domain: wsu_a11y_collector.url_cache[ 0 ]._source.domain
-					};
-					wsu_a11y_collector.url_cache.shift();
-
-					resolve( url_data );
-				}
-			}
-		}, function( error ) {
-			reject( "Error: " + error.message );
-		} );
 	} );
 };
 
@@ -306,3 +300,5 @@ var queueScan = function() {
 
 // Start things up immediately on run.
 queueScan();
+
+populateURLCache();
