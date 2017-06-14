@@ -54,6 +54,22 @@ function getScanner() {
 }
 
 /**
+ * Mark URL population as inactive.
+ */
+function closePopulation() {
+	wsu_a11y_collector.active_population = false;
+}
+
+/**
+ * Decrease the active scan count.
+ */
+function closeScan() {
+	if ( 0 < wsu_a11y_collector.active_scans ) {
+		wsu_a11y_collector.active_scans--;
+	}
+}
+
+/**
  * Retrieve the next set of URLs used to populate the collector queue and
  * add it to the url cache.
  */
@@ -299,22 +315,6 @@ var processScan = function() {
 
 	closeScan();
 };
-
-/**
- * Mark URL population as inactive.
- */
-function closePopulation() {
-	wsu_a11y_collector.active_population = false;
-}
-
-/**
- * Decrease the active scan count.
- */
-function closeScan() {
-	if ( 0 < wsu_a11y_collector.active_scans ) {
-		wsu_a11y_collector.active_scans--;
-	}
-}
 
 /**
  * Start a new scan process whenever fewer than 10 scans
