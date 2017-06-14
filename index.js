@@ -13,6 +13,7 @@ require( "dotenv" ).config();
  */
 var wsu_a11y_collector = {
 	url_cache: [],
+	active_scans: 0,
 	flagged_domains: [] // Subdomains flagged to not be scanned.
 };
 
@@ -133,8 +134,6 @@ function populateURLCache() {
 	}, function ( error ) {
 		util.log( "Error (populateURLCache): " + error.message );
 	} );
-
-	setTimeout( populateURLCache, 5000 ); // @todo rethink?
 }
 
 /**
@@ -256,10 +255,9 @@ var logScanDate = function( url_data ) {
 			}
 		}
 	} ).then( function() {
-		queueScan();
+		// Nothing?
 	}, function( error ) {
 		util.log( "Error: " + error.message );
-		queueScan();
 	} );
 };
 
@@ -286,21 +284,46 @@ var scanURL = function( url_data ) {
 
 // Manages the process of the scan from start to finish.
 var processScan = function() {
-	getURL()
-		.then( scanURL )
-		.then( logScanDate )
-		.catch( function( error ) {
-			util.log( error );
-			queueScan();
-		} );
+	var url_data = getURL();
+
+	if ( false !== url_data ) {
+		scanURL( url_data )
+			.then( logScanDate )
+			.catch( function( error ) {
+				util.log( "Error (processScan): " + error.message );
+			} );
+	}
+
+	closeScan();
 };
 
-// Queues a new accessibility scan for collection.
-var queueScan = function() {
-	setTimeout( processScan, 100 );
-};
+/**
+ * Decrease the active scan count.
+ */
+function closeScan() {
+	util.log( "Close scan " + wsu_a11y_collector.active_scans );
+	if ( 0 < wsu_a11y_collector.active_scans ) {
+		wsu_a11y_collector.active_scans--;
+	}
+}
+
+/**
+ * Start a new scan process whenever fewer than 10 scans
+ * are active.
+ */
+function queueScans() {
+	util.log( "Queue Scans " + wsu_a11y_collector.active_scans );
+	if ( 10 > wsu_a11y_collector.active_scans ) {
+		wsu_a11y_collector.active_scans++;
+		setTimeout( processScan, 200 );
+	}
+
+	if ( 2 > wsu_a11y_collector.active_scans ) {
+		populateURLCache();
+	}
+
+	setTimeout( queueScans, 200 );
+}
 
 // Start things up immediately on run.
-queueScan();
-
-populateURLCache();
+queueScans();
