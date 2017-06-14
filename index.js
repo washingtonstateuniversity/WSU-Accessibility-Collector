@@ -6,6 +6,11 @@ const util = require( "util" );
 
 require( "dotenv" ).config();
 
+/**
+ * Store data used by the collector.
+ *
+ * @type {{url_cache: Array, flagged_domains: Array}}
+ */
 var wsu_a11y_collector = {
 	url_cache: [],
 	flagged_domains: [] // Subdomains flagged to not be scanned.
