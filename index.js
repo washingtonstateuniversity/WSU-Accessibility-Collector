@@ -14,6 +14,7 @@ require( "dotenv" ).config();
 var wsu_a11y_collector = {
 	url_cache: [],
 	active_scans: 0,
+	active_scanner: false,
 	active_population: false,
 	flagged_domains: [] // Subdomains flagged to not be scanned.
 };
@@ -211,9 +212,11 @@ function scanAccessibility( url_data ) {
 			return;
 		}
 
-		var scanner = getScanner();
+		if ( false === wsu_a11y_collector.active_scanner ) {
+			wsu_a11y_collector.active_scanner = getScanner();
+		}
 
-		scanner.run( url_data.url, function( error, result ) {
+		wsu_a11y_collector.active_scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
 				util.log( error.message );
 				resolve( url_data );
