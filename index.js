@@ -15,6 +15,8 @@ var wsu_a11y_collector = {
 	url_cache: [],
 	active_scans: 0,
 	active_scanner: false,
+	scanner_age: 0,
+	scanner_age_last: 0,
 	active_population: false,
 	flagged_domains: [] // Subdomains flagged to not be scanned.
 };
@@ -52,6 +54,20 @@ function getScanner() {
 			}
 		}
 	} );
+}
+
+/**
+ * Check the health of the scanner on a regular basis so that it
+ * can be restarted if stalled.
+ */
+function checkScannerHealth() {
+	if ( 0 !== wsu_a11y_collector.scanner_age && wsu_a11y_collector.scanner_age === wsu_a11y_collector.scanner_age_last ) {
+		util.log( "Reset Stalled Scanner: " + wsu_a11y_collector.scanner_age + " scans" );
+		wsu_a11y_collector.active_scanner = false;
+	}
+
+	wsu_a11y_collector.scanner_age_last = wsu_a11y_collector.scanner_age;
+	setTimeout( checkScannerHealth, 60000 );
 }
 
 /**
@@ -339,3 +355,5 @@ function queueScans() {
 
 // Start things up immediately on run.
 queueScans();
+
+setTimeout( checkScannerHealth, 60000 );
