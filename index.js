@@ -64,8 +64,8 @@ function closePopulation() {
  * Decrease the active scan count.
  */
 function closeScan() {
-	if ( 0 < wsu_a11y_collector.active_scans ) {
-		wsu_a11y_collector.active_scans--;
+	if ( 1 === wsu_a11y_collector.active_scans ) {
+		wsu_a11y_collector.active_scans = 0;
 	}
 }
 
@@ -274,8 +274,9 @@ function logScanDate( url_data ) {
 			}
 		}
 	} ).then( function() {
-		// Nothing?
+		closeScan();
 	}, function( error ) {
+		closeScan();
 		util.log( "Error: " + error.message );
 	} );
 }
@@ -283,7 +284,7 @@ function logScanDate( url_data ) {
 // Manages the scan of an individual URL. Triggers the deletion of
 // previous associated records and then triggers the collection of
 // new accessibility data.
-function Scan( url_data ) {
+function scanURL( url_data ) {
 	util.log( "Scan " + url_data.url );
 
 	return new Promise( function( resolve, reject ) {
@@ -306,11 +307,12 @@ function processScan() {
 		scanURL( url_data )
 			.then( logScanDate )
 			.catch( function( error ) {
+				closeScan();
 				util.log( "Error (processScan): " + error.message );
 			} );
+	} else {
+		closeScan();
 	}
-
-	closeScan();
 }
 
 /**
@@ -318,12 +320,12 @@ function processScan() {
  * are active.
  */
 function queueScans() {
-	if ( 5 > wsu_a11y_collector.active_scans ) {
-		wsu_a11y_collector.active_scans++;
-		setTimeout( processScan, 500 );
+	if ( 0 === wsu_a11y_collector.active_scans ) {
+		wsu_a11y_collector.active_scans = 1;
+		setTimeout( processScan, 100 );
 	}
 
-	if ( 2 > wsu_a11y_collector.active_scans && 11 > wsu_a11y_collector.url_cache.length && false === wsu_a11y_collector.active_population ) {
+	if ( 2 > wsu_a11y_collector.url_cache.length && false === wsu_a11y_collector.active_population ) {
 		wsu_a11y_collector.active_population = true;
 		setTimeout( populateURLCache, 2000 );
 	}
