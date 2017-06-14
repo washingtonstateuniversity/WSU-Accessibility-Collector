@@ -14,6 +14,7 @@ require( "dotenv" ).config();
 var wsu_a11y_collector = {
 	url_cache: [],
 	active_scans: 0,
+	active_population: false,
 	flagged_domains: [] // Subdomains flagged to not be scanned.
 };
 
@@ -131,7 +132,9 @@ function populateURLCache() {
 
 			util.log( "URL Cache: " + wsu_a11y_collector.url_cache.length + " URLs waiting scan" );
 		}
+		closePopulation();
 	}, function ( error ) {
+		closePopulation();
 		util.log( "Error (populateURLCache): " + error.message );
 	} );
 }
@@ -298,10 +301,16 @@ var processScan = function() {
 };
 
 /**
+ * Mark URL population as inactive.
+ */
+function closePopulation() {
+	wsu_a11y_collector.active_population = false;
+}
+
+/**
  * Decrease the active scan count.
  */
 function closeScan() {
-	util.log( "Close scan " + wsu_a11y_collector.active_scans );
 	if ( 0 < wsu_a11y_collector.active_scans ) {
 		wsu_a11y_collector.active_scans--;
 	}
@@ -312,17 +321,17 @@ function closeScan() {
  * are active.
  */
 function queueScans() {
-	util.log( "Queue Scans " + wsu_a11y_collector.active_scans );
-	if ( 10 > wsu_a11y_collector.active_scans ) {
+	if ( 5 > wsu_a11y_collector.active_scans ) {
 		wsu_a11y_collector.active_scans++;
-		setTimeout( processScan, 200 );
+		setTimeout( processScan, 500 );
 	}
 
-	if ( 2 > wsu_a11y_collector.active_scans ) {
-		populateURLCache();
+	if ( 2 > wsu_a11y_collector.active_scans && 11 > wsu_a11y_collector.url_cache.length && false === wsu_a11y_collector.active_population ) {
+		wsu_a11y_collector.active_population = true;
+		setTimeout( populateURLCache, 2000 );
 	}
 
-	setTimeout( queueScans, 200 );
+	setTimeout( queueScans, 500 );
 }
 
 // Start things up immediately on run.
