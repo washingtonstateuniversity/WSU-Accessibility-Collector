@@ -1,6 +1,6 @@
 {
   "name": "wsu-a11y-collector",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Scans and collects accessibility data for a given set of URLs",
   "main": "wsu-a11y-collector.js",
   "dependencies": {
