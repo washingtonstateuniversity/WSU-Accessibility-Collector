@@ -69,7 +69,7 @@ function checkScannerHealth() {
 	}
 
 	wsu_a11y_collector.scanner_age_last = wsu_a11y_collector.scanner_age;
-	setTimeout( checkScannerHealth, 60000 );
+	setTimeout( checkScannerHealth, 120000 );
 }
 
 /**
@@ -362,4 +362,4 @@ function queueScans() {
 // Start things up immediately on run.
 queueScans();
 
-setTimeout( checkScannerHealth, 60000 );
+setTimeout( checkScannerHealth, 120000 );
