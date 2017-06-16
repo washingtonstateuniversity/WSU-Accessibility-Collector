@@ -230,6 +230,7 @@ function scanAccessibility( url_data ) {
 
 		if ( false === wsu_a11y_collector.active_scanner ) {
 			wsu_a11y_collector.active_scanner = getScanner();
+			wsu_a11y_collector.scanner_age = 1;
 		}
 
 		wsu_a11y_collector.active_scanner.run( url_data.url, function( error, result ) {
@@ -306,6 +307,8 @@ function logScanDate( url_data ) {
 // new accessibility data.
 function scanURL( url_data ) {
 	util.log( "Scan " + url_data.url );
+
+	wsu_a11y_collector.scanner_age++;
 
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
