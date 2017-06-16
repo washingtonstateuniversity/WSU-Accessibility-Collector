@@ -62,12 +62,14 @@ function getScanner() {
  */
 function checkScannerHealth() {
 	if ( 0 !== wsu_a11y_collector.scanner_age && wsu_a11y_collector.scanner_age === wsu_a11y_collector.scanner_age_last ) {
-		util.log( "Reset Stalled Scanner: " + wsu_a11y_collector.scanner_age + " scans" );
+		util.log( "Scanner Health: Stalled, " + wsu_a11y_collector.scanner_age + " scans" );
 		wsu_a11y_collector.active_scanner = false;
+	} else {
+		util.log( "Scanner Health: Active, " + wsu_a11y_collector.scanner_age + " scans" );
 	}
 
 	wsu_a11y_collector.scanner_age_last = wsu_a11y_collector.scanner_age;
-	setTimeout( checkScannerHealth, 60000 );
+	setTimeout( checkScannerHealth, 120000 );
 }
 
 /**
@@ -230,6 +232,8 @@ function scanAccessibility( url_data ) {
 
 		if ( false === wsu_a11y_collector.active_scanner ) {
 			wsu_a11y_collector.active_scanner = getScanner();
+			util.log( "Scanner Health: Reset scanner" );
+			wsu_a11y_collector.scanner_age = 1;
 		}
 
 		wsu_a11y_collector.active_scanner.run( url_data.url, function( error, result ) {
@@ -307,6 +311,8 @@ function logScanDate( url_data ) {
 function scanURL( url_data ) {
 	util.log( "Scan " + url_data.url );
 
+	wsu_a11y_collector.scanner_age++;
+
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
 			.then( scanAccessibility )
@@ -356,4 +362,4 @@ function queueScans() {
 // Start things up immediately on run.
 queueScans();
 
-setTimeout( checkScannerHealth, 60000 );
+setTimeout( checkScannerHealth, 120000 );
