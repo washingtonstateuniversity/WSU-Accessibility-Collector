@@ -246,7 +246,6 @@ function queueLockedURLs() {
 		}
 
 		util.log( "queueLockedURL: No locked URLs found to queue for ID " + wsu_a11y_collector.lock_key );
-		setTimeout( queueLockedURLs, 1000 );
 		throw 0;
 	} ).catch( function( error ) {
 		setTimeout( queueLockedURLs, 1000 );
