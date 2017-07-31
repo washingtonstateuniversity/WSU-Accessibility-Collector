@@ -278,7 +278,7 @@ function queueLockedURLs() {
 		}
 
 		if ( 5 <= Object.keys( wsu_a11y_collector.url_cache ).length ) {
-			util.log( "queueLockedURLs: Skip locked URL lookup due to local backlog." );
+			util.log( "queue ID " + wsu_a11y_collector.lock_key + ": Skip locked URL lookup due to local backlog." );
 			setTimeout( queueLockedURLs, 5000 );
 			return true;
 		}
@@ -302,7 +302,7 @@ function queueLockedURLs() {
 		}
 
 		if ( 1 <= response.hits.hits.length ) {
-			util.log( "queueLockedURLs: Queued " + response.hits.hits.length + " URLs for ID " + wsu_a11y_collector.lock_key );
+			util.log( "queue ID " + wsu_a11y_collector.lock_key + ": " + response.hits.hits.length + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing" );
 			setTimeout( queueLockedURLs, 1000 );
 			return true;
 		}
