@@ -84,8 +84,8 @@ function closeScan() {
  */
 function lockURL() {
 
+	// Do not lock any URLs when the lock limit has been reached.
 	if ( wsu_a11y_collector.locker_locked === true ) {
-		util.log( "lockURL: Skip URL lock due to full queue." );
 		return;
 	}
 
