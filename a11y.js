@@ -86,6 +86,7 @@ function closeScan() {
  * @returns {*}
  */
 function lockURL() {
+
 	// Limit the number of URLs that can be locked at once.
 	if ( 3 < Object.keys( wsu_a11y_collector.url_cache ).length ) {
 		return;
@@ -266,7 +267,7 @@ function queueLockedURLs() {
 		index: process.env.ES_URL_INDEX,
 		type: "url",
 		body: {
-			size: 10,
+			size: 2,
 			query: {
 				match: {
 					"a11y_scan_priority": wsu_a11y_collector.lock_key
