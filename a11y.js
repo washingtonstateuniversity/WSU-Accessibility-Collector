@@ -258,6 +258,7 @@ function markURLUnresponsive( url ) {
  */
 function queueLockedURLs() {
 	var elastic = getElastic();
+	var queued = 0;
 
 	elastic.search( {
 		index: process.env.ES_URL_INDEX,
@@ -293,6 +294,8 @@ function queueLockedURLs() {
 				continue;
 			}
 
+			queued++;
+
 			wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ] = {
 				id: response.hits.hits[ j ]._id,
 				url: response.hits.hits[ j ]._source.url,
@@ -302,7 +305,7 @@ function queueLockedURLs() {
 		}
 
 		if ( 1 <= response.hits.hits.length ) {
-			util.log( "queue ID " + wsu_a11y_collector.lock_key + ": " + response.hits.hits.length + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing" );
+			util.log( "queue ID " + wsu_a11y_collector.lock_key + ": " + queued + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing" );
 			setTimeout( queueLockedURLs, 1000 );
 			return true;
 		}
