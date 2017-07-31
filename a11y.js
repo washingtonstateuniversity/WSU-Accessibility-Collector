@@ -274,12 +274,6 @@ function queueLockedURLs() {
 			wsu_a11y_collector.locker_locked = false;
 		}
 
-		if ( 5 <= Object.keys( wsu_a11y_collector.url_cache ).length ) {
-			util.log( "queue ID " + wsu_a11y_collector.lock_key + ": Skip locked URL lookup due to local backlog." );
-			setTimeout( queueLockedURLs, 5000 );
-			return true;
-		}
-
 		for ( var j = 0, y = response.hits.hits.length; j < y; j++ ) {
 			if ( response.hits.hits[ j ]._source.url in wsu_a11y_collector.url_cache ) {
 				wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count++;
