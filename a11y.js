@@ -393,7 +393,7 @@ function scanAccessibility( url_data ) {
 				body: bulk_body
 			}, function( err, response ) {
 				if ( undefined !== typeof response ) {
-					util.log( "queue ID " +  wsu_a11y_collector.lock_key + ": Logged " + response.items.length + " records for " + url_data.url + " in " + response.took + "ms." );
+					util.log( "QID" +  wsu_a11y_collector.lock_key + ": Logged " + response.items.length + " records for " + url_data.url + " in " + response.took + "ms." );
 					resolve( url_data );
 				} else {
 					util.log( err );
