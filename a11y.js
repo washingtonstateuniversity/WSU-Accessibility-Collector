@@ -316,8 +316,8 @@ function getURL() {
 
 	// Check for a URL in the existing cache from our last lookup.
 	if ( 0 !== Object.keys( wsu_a11y_collector.url_cache ).length ) {
-		var url_cache = wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[0] ];
-		delete wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[0] ];
+		var url_cache = wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[ 0 ] ];
+		delete wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[ 0 ] ];
 
 		return {
 			id: url_cache.id,
@@ -358,12 +358,6 @@ function deleteAccessibilityRecord( url_data ) {
 // these results to an ES index.
 function scanAccessibility( url_data ) {
 	return new Promise( function( resolve ) {
-		//if ( -1 < wsu_a11y_collector.flagged_domains.indexOf( url_data.domain ) ) {
-		//	util.log( "Error: Skipping flagged domain " + url_data.domain );
-		//	resolve( url_data );
-		//	return;
-		//}
-
 		if ( false === wsu_a11y_collector.active_scanner ) {
 			wsu_a11y_collector.active_scanner = getScanner();
 			util.log( "Scanner Health: Reset scanner" );
