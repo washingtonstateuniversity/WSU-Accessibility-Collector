@@ -331,7 +331,12 @@ function getURL() {
 	return false;
 }
 
-// Deletes the existing accessibility records for a URL from the ES index.
+/**
+ * Delete existing accessibility records for a URL from the ES index.
+ *
+ * @param url_data
+ * @returns {Promise}
+ */
 function deleteAccessibilityRecord( url_data ) {
 	return new Promise( function( resolve, reject ) {
 		var elastic = getElastic();
@@ -356,8 +361,13 @@ function deleteAccessibilityRecord( url_data ) {
 	} );
 }
 
-// Scans a URL for accessibility issues using Pa11y and logs
-// these results to an ES index.
+/**
+ * Scan a URL for accessibility issues using Pa11y and log these
+ * results to an ES index.
+ *
+ * @param url_data
+ * @returns {Promise}
+ */
 function scanAccessibility( url_data ) {
 	return new Promise( function( resolve ) {
 		if ( false === wsu_a11y_collector.active_scanner ) {
@@ -410,8 +420,12 @@ function scanAccessibility( url_data ) {
 	} );
 }
 
-// Logs the completion of a scan by updating the last updated
-// date in the URL index.
+/**
+ * Log the completion of a scan by updating the last updated date
+ * in the URL index.
+ *
+ * @param url_data
+ */
 function logScanDate( url_data ) {
 	var d = new Date();
 
@@ -436,9 +450,15 @@ function logScanDate( url_data ) {
 	} );
 }
 
-// Manages the scan of an individual URL. Triggers the deletion of
-// previous associated records and then triggers the collection of
-// new accessibility data.
+/**
+ * Manage the scan of an individual URL.
+ *
+ * Triggers the deletion of previous associated records and then
+ * triggers the collection of new accessibility data.
+ *
+ * @param url_data
+ * @returns {Promise}
+ */
 function scanURL( url_data ) {
 	wsu_a11y_collector.scanner_age++;
 	util.log( "QID" + wsu_a11y_collector.lock_key + ": Start " + url_data.url + ", scanner age " + wsu_a11y_collector.scanner_age );
@@ -455,7 +475,9 @@ function scanURL( url_data ) {
 	} );
 }
 
-// Manages the process of the scan from start to finish.
+/**
+ * Manage the process of an accessibility record collection.
+ */
 function processScan() {
 	var url_data = getURL();
 
@@ -472,8 +494,7 @@ function processScan() {
 }
 
 /**
- * Start a new scan process whenever fewer than 10 scans
- * are active.
+ * Manage the initiation of new scanner processes.
  */
 function queueScans() {
 	if ( 2 > wsu_a11y_collector.active_scans ) {
