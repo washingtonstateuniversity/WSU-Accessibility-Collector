@@ -13,6 +13,7 @@ require( "dotenv" ).config();
  */
 var wsu_a11y_collector = {
 	url_cache: [],
+	current_urls: [],
 	active_scans: 0,
 	active_scanner: false,
 	locker_locked: false,
@@ -269,12 +270,19 @@ function queueLockedURLs() {
 		}
 
 		for ( var j = 0, y = response.hits.hits.length; j < y; j++ ) {
+
+			// Skip URLs that are already queued to be scanned.
 			if ( response.hits.hits[ j ]._source.url in wsu_a11y_collector.url_cache ) {
 				wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count++;
 
 				if ( 30 <= wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count ) {
 					markURLUnresponsive( response.hits.hits[ j ]._source.url );
 				}
+				continue;
+			}
+
+			// Skip URLs that are currently being scanned.
+			if ( response.hits.hits[ j ]._source.url in wsu_a11y_collector.current_urls ) {
 				continue;
 			}
 
@@ -313,6 +321,7 @@ function getURL() {
 	// Check for a URL in the existing cache from our last lookup.
 	if ( 0 !== Object.keys( wsu_a11y_collector.url_cache ).length ) {
 		var url_cache = wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[ 0 ] ];
+		wsu_a11y_collector.current_urls.push( url_cache.url );
 		delete wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[ 0 ] ];
 
 		return {
@@ -422,6 +431,7 @@ function logScanDate( url_data ) {
 			}
 		}
 	} ).then( function() {
+		delete wsu_a11y_collector.current_urls[ url_data.url ];
 		closeScan();
 	}, function( error ) {
 		closeScan();
