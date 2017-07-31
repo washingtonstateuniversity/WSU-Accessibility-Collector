@@ -100,11 +100,18 @@ function lockURL() {
 		body: {
 			size: 2,
 			query: {
-				range: {
-					a11y_scan_priority: {
-						gte: 1,
-						lte: 999
-					}
+				bool: {
+					must: [
+						{
+							range: {
+								a11y_scan_priority: {
+									gte: 1,
+									lte: 999
+								}
+							}
+						},
+						{ match: { status_code: 200 } }
+					]
 				}
 			},
 			sort: [
@@ -134,6 +141,9 @@ function lockURL() {
 						must_not: [
 							{ exists: { field: "last_a11y_scan" } },
 							{ exists: { field: "a11y_scan_priority" } }
+						],
+						must: [
+							{ match: { status_code: 200 } }
 						]
 					}
 				},
@@ -165,7 +175,8 @@ function lockURL() {
 											"lte": "now-1d/d"
 										}
 									}
-								}
+								},
+								{ match: { status_code: 200 } }
 							]
 						}
 					},
