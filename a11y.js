@@ -12,14 +12,13 @@ require( "dotenv" ).config();
  * @type {{url_cache: Array}}
  */
 var wsu_a11y_collector = {
-	url_cache: [],
-	current_urls: [],
-	active_scans: 0,
-	active_scanner: false,
-	locker_locked: false,
-	lock_key: null,
-	locked_urls: 0,
-	scanner_age: 0
+	url_cache: [],         // URLs that are scheduled to be scanned.
+	current_urls: [],      // URLs that are currently being scanned.
+	active_scans: 0,       // The total number of active scans.
+	active_scanner: false, // The pa11y scanner instance.
+	locker_locked: false,  // Locks the URL locker process when filled.
+	lock_key: null,        // This accessibility collector's ID.
+	scanner_age: 0         // Total number of scans.
 };
 
 wsu_a11y_collector.lock_key = process.env.LOCK_KEY;
