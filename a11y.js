@@ -9,20 +9,16 @@ require( "dotenv" ).config();
 /**
  * Store data used by the collector.
  *
- * @type {{url_cache: Array, flagged_domains: Array}}
+ * @type {{url_cache: Array}}
  */
 var wsu_a11y_collector = {
 	url_cache: [],
-	url_queue: [],
 	active_scans: 0,
 	active_scanner: false,
 	locker_locked: false,
 	lock_key: null,
 	locked_urls: 0,
-	scanner_age: 0,
-	scanner_age_last: 0,
-	active_population: false,
-	flagged_domains: [] // Subdomains flagged to not be scanned.
+	scanner_age: 0
 };
 
 wsu_a11y_collector.lock_key = process.env.LOCK_KEY;
