@@ -320,8 +320,9 @@ function getURL() {
 
 	// Check for a URL in the existing cache from our last lookup.
 	if ( 0 !== Object.keys( wsu_a11y_collector.url_cache ).length ) {
+		var d = new Date();
 		var url_cache = wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[ 0 ] ];
-		wsu_a11y_collector.current_urls.push( url_cache.url );
+		wsu_a11y_collector.current_urls[ url_cache.url ] = d.getTime();
 		delete wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[ 0 ] ];
 
 		return {
