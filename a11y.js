@@ -208,6 +208,48 @@ function lockURL() {
 }
 
 /**
+ * Mark a URL as unresponsive when multiple attempts failed.
+ *
+ * @param url
+ */
+function markURLUnresponsive( url ) {
+	if ( "undefined" === typeof wsu_a11y_collector.url_cache[ url ] ) {
+		util.log( "Error updating "  + url + " and not found in URL cache." );
+		return;
+	}
+
+	var elastic = getElastic();
+	var d = new Date();
+
+	elastic.update( {
+		index: process.env.ES_URL_INDEX,
+		type: "url",
+		id: wsu_a11y_collector.url_cache[ url ].id,
+		body: {
+			doc: {
+				identity: "unknown",
+				analytics: "unknown",
+				status_code: 800,
+				redirect_url: null,
+				search_scan_priority: null,
+				a11y_scan_priority: null,
+				last_a11y_scan: d.getTime(),
+				anchor_scan_priority: null
+			}
+		}
+	} )
+	.then( function() {
+		delete wsu_a11y_collector.url_cache[ url ];
+		util.log( "URL marked unresponsive: " + url );
+	} )
+	.catch( function( error ) {
+
+		// @todo what do do with a failed scan?
+		util.log( "Error (updateURLData 2): " + url + " " + error.message );
+	} );
+}
+
+/**
  * Queue any locked URLs for accessibility collection.
  *
  * @returns {*}
@@ -237,7 +279,7 @@ function queueLockedURLs() {
 				wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count++;
 
 				if ( 30 <= wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count ) {
-					//markURLUnresponsive( response.hits.hits[ j ]._source.url );
+					markURLUnresponsive( response.hits.hits[ j ]._source.url );
 				}
 				continue;
 			}
