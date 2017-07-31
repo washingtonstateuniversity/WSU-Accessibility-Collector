@@ -16,6 +16,7 @@ var wsu_a11y_collector = {
 	url_queue: [],
 	active_scans: 0,
 	active_scanner: false,
+	locker_locked: false,
 	lock_key: null,
 	locked_urls: 0,
 	scanner_age: 0,
@@ -87,8 +88,8 @@ function closeScan() {
  */
 function lockURL() {
 
-	// Limit the number of URLs that can be locked at once.
-	if ( 3 < Object.keys( wsu_a11y_collector.url_cache ).length ) {
+	if ( wsu_a11y_collector.locker_locked === true ) {
+		util.log( "lockURL: Skip URL lock due to full queue." );
 		return;
 	}
 
@@ -258,11 +259,6 @@ function markURLUnresponsive( url ) {
 function queueLockedURLs() {
 	var elastic = getElastic();
 
-	if ( 5 <= Object.keys( wsu_a11y_collector.url_cache ).length ) {
-		setTimeout( queueLockedURLs, 1000 );
-		return;
-	}
-
 	elastic.search( {
 		index: process.env.ES_URL_INDEX,
 		type: "url",
@@ -275,6 +271,18 @@ function queueLockedURLs() {
 			}
 		}
 	} ).then( function( response ) {
+		if ( response.hits.total >= 25 ) {
+			wsu_a11y_collector.locker_locked = true;
+		} else {
+			wsu_a11y_collector.locker_locked = false;
+		}
+
+		if ( 5 <= Object.keys( wsu_a11y_collector.url_cache ).length ) {
+			util.log( "queueLockedURLs: Skip locked URL lookup due to local backlog." );
+			setTimeout( queueLockedURLs, 5000 );
+			return true;
+		}
+
 		for ( var j = 0, y = response.hits.hits.length; j < y; j++ ) {
 			if ( response.hits.hits[ j ]._source.url in wsu_a11y_collector.url_cache ) {
 				wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count++;
