@@ -295,16 +295,16 @@ function queueLockedURLs() {
 		}
 
 		if ( 1 <= response.hits.hits.length ) {
-			util.log( "queue ID " + wsu_a11y_collector.lock_key + ": " + queued + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing" );
+			util.log( "QID" + wsu_a11y_collector.lock_key + ": " + queued + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing" );
 			setTimeout( queueLockedURLs, 1000 );
 			return true;
 		}
 
-		util.log( "queueLockedURL: No locked URLs found to queue for ID " + wsu_a11y_collector.lock_key );
+		util.log( "QID" + wsu_a11y_collector.lock_key + ": No locked URLs found to queue." );
 		throw 0;
 	} ).catch( function( error ) {
 		setTimeout( queueLockedURLs, 1000 );
-		util.log( "Error: " + error );
+		util.log( "QID" + wsu_a11y_collector.lock_key + " (error): " + error );
 		throw 0;
 	} );
 }
@@ -347,7 +347,7 @@ function deleteAccessibilityRecord( url_data ) {
 			}
 		}, function( error, response ) {
 			if ( undefined !== typeof response ) {
-				util.log( "Deleted " + response.total + " previous records in " + response.took + " ms." );
+				util.log( "QID" + wsu_a11y_collector.lock_key + ": Deleted " + response.total + " records for " + url_data.url + " in " + response.took + " ms." );
 				resolve( url_data );
 			} else {
 				reject( "Error deleting accessibility records for " + url_data.url );
@@ -400,7 +400,7 @@ function scanAccessibility( url_data ) {
 				body: bulk_body
 			}, function( err, response ) {
 				if ( undefined !== typeof response ) {
-					util.log( "Scan complete: Logged " + response.items.length + " records in " + response.took + "ms." );
+					util.log( "queue ID " +  wsu_a11y_collector.lock_key + ": Logged " + response.items.length + " records for " + url_data.url + " in " + response.took + "ms." );
 					resolve( url_data );
 				} else {
 					util.log( err );
@@ -440,9 +440,8 @@ function logScanDate( url_data ) {
 // previous associated records and then triggers the collection of
 // new accessibility data.
 function scanURL( url_data ) {
-	util.log( "Scan " + url_data.url );
-
 	wsu_a11y_collector.scanner_age++;
+	util.log( "QID" + wsu_a11y_collector.lock_key + ": Start " + url_data.url + ", scanner age " + wsu_a11y_collector.scanner_age );
 
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
@@ -481,7 +480,6 @@ function queueScans() {
 		delete wsu_a11y_collector.active_scanner;
 		wsu_a11y_collector.active_scans = 0;
 
-		util.log( "Delete old scanner" );
 		setTimeout( createScanner, 1000 );
 		setTimeout( queueScans, 3000 );
 		return;
