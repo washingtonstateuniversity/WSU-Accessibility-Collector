@@ -58,12 +58,6 @@ function getScanner() {
 	} );
 }
 
-function createScanner() {
-	wsu_a11y_collector.active_scanner = getScanner();
-	wsu_a11y_collector.scanner_age = 0;
-	wsu_a11y_collector.active_scans = 0;
-}
-
 /**
  * Decrease the active scan count.
  */
@@ -362,7 +356,6 @@ function scanAccessibility( url_data ) {
 	return new Promise( function( resolve ) {
 		if ( false === wsu_a11y_collector.active_scanner ) {
 			wsu_a11y_collector.active_scanner = getScanner();
-			util.log( "Scanner Health: Reset scanner" );
 			wsu_a11y_collector.scanner_age = 1;
 		}
 
@@ -476,15 +469,6 @@ function processScan() {
  * are active.
  */
 function queueScans() {
-	if ( 15 < wsu_a11y_collector.scanner_age ) {
-		delete wsu_a11y_collector.active_scanner;
-		wsu_a11y_collector.active_scans = 0;
-
-		setTimeout( createScanner, 1000 );
-		setTimeout( queueScans, 3000 );
-		return;
-	}
-
 	if ( 2 > wsu_a11y_collector.active_scans ) {
 		wsu_a11y_collector.active_scans++;
 		setTimeout( processScan, 100 );
