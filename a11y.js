@@ -9,19 +9,16 @@ require( "dotenv" ).config();
 /**
  * Store data used by the collector.
  *
- * @type {{url_cache: Array, flagged_domains: Array}}
+ * @type {{url_cache: Array}}
  */
 var wsu_a11y_collector = {
-	url_cache: [],
-	url_queue: [],
-	active_scans: 0,
-	active_scanner: false,
-	lock_key: null,
-	locked_urls: 0,
-	scanner_age: 0,
-	scanner_age_last: 0,
-	active_population: false,
-	flagged_domains: [] // Subdomains flagged to not be scanned.
+	url_cache: [],         // URLs that are scheduled to be scanned.
+	current_urls: [],      // URLs that are currently being scanned.
+	active_scans: 0,       // The total number of active scans.
+	active_scanner: false, // The pa11y scanner instance.
+	locker_locked: false,  // Locks the URL locker process when filled.
+	lock_key: null,        // This accessibility collector's ID.
+	scanner_age: 0         // Total number of scans.
 };
 
 wsu_a11y_collector.lock_key = process.env.LOCK_KEY;
@@ -61,12 +58,6 @@ function getScanner() {
 	} );
 }
 
-function createScanner() {
-	wsu_a11y_collector.active_scanner = getScanner();
-	wsu_a11y_collector.scanner_age = 0;
-	wsu_a11y_collector.active_scans = 0;
-}
-
 /**
  * Decrease the active scan count.
  */
@@ -87,8 +78,8 @@ function closeScan() {
  */
 function lockURL() {
 
-	// Limit the number of URLs that can be locked at once.
-	if ( 3 < Object.keys( wsu_a11y_collector.url_cache ).length ) {
+	// Do not lock any URLs when the lock limit has been reached.
+	if ( wsu_a11y_collector.locker_locked === true ) {
 		return;
 	}
 
@@ -128,7 +119,6 @@ function lockURL() {
 		}
 	} ).then( function( response ) {
 		if ( 1 <= response.updated ) {
-			wsu_a11y_collector.locked_urls += response.updated;
 			throw response.updated;
 		}
 
@@ -154,7 +144,6 @@ function lockURL() {
 			}
 		} ).then( function( response ) {
 			if ( 1 <= response.updated ) {
-				wsu_a11y_collector.locked_urls += response.updated;
 				throw response.updated;
 			}
 
@@ -194,7 +183,6 @@ function lockURL() {
 				}
 			} ).then( function( response ) {
 				if ( 1 <= response.updated ) {
-					wsu_a11y_collector.locked_urls += response.updated;
 					throw response.updated;
 				}
 
@@ -257,11 +245,7 @@ function markURLUnresponsive( url ) {
  */
 function queueLockedURLs() {
 	var elastic = getElastic();
-
-	if ( 5 <= Object.keys( wsu_a11y_collector.url_cache ).length ) {
-		setTimeout( queueLockedURLs, 1000 );
-		return;
-	}
+	var queued = 0;
 
 	elastic.search( {
 		index: process.env.ES_URL_INDEX,
@@ -275,7 +259,15 @@ function queueLockedURLs() {
 			}
 		}
 	} ).then( function( response ) {
+		if ( response.hits.total >= 25 ) {
+			wsu_a11y_collector.locker_locked = true;
+		} else {
+			wsu_a11y_collector.locker_locked = false;
+		}
+
 		for ( var j = 0, y = response.hits.hits.length; j < y; j++ ) {
+
+			// Skip URLs that are already queued to be scanned.
 			if ( response.hits.hits[ j ]._source.url in wsu_a11y_collector.url_cache ) {
 				wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count++;
 
@@ -284,6 +276,13 @@ function queueLockedURLs() {
 				}
 				continue;
 			}
+
+			// Skip URLs that are currently being scanned.
+			if ( response.hits.hits[ j ]._source.url in wsu_a11y_collector.current_urls ) {
+				continue;
+			}
+
+			queued++;
 
 			wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ] = {
 				id: response.hits.hits[ j ]._id,
@@ -294,16 +293,16 @@ function queueLockedURLs() {
 		}
 
 		if ( 1 <= response.hits.hits.length ) {
-			util.log( "queueLockedURLs: Queued " + response.hits.hits.length + " URLs for ID " + wsu_a11y_collector.lock_key );
+			util.log( "QID" + wsu_a11y_collector.lock_key + ": " + queued + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing" );
 			setTimeout( queueLockedURLs, 1000 );
 			return true;
 		}
 
-		util.log( "queueLockedURL: No locked URLs found to queue for ID " + wsu_a11y_collector.lock_key );
+		util.log( "QID" + wsu_a11y_collector.lock_key + ": No locked URLs found to queue." );
 		throw 0;
 	} ).catch( function( error ) {
 		setTimeout( queueLockedURLs, 1000 );
-		util.log( "Error: " + error );
+		util.log( "QID" + wsu_a11y_collector.lock_key + " (error): " + error );
 		throw 0;
 	} );
 }
@@ -317,7 +316,9 @@ function getURL() {
 
 	// Check for a URL in the existing cache from our last lookup.
 	if ( 0 !== Object.keys( wsu_a11y_collector.url_cache ).length ) {
+		var d = new Date();
 		var url_cache = wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[ 0 ] ];
+		wsu_a11y_collector.current_urls[ url_cache.url ] = d.getTime();
 		delete wsu_a11y_collector.url_cache[ Object.keys( wsu_a11y_collector.url_cache )[ 0 ] ];
 
 		return {
@@ -330,7 +331,12 @@ function getURL() {
 	return false;
 }
 
-// Deletes the existing accessibility records for a URL from the ES index.
+/**
+ * Delete existing accessibility records for a URL from the ES index.
+ *
+ * @param url_data
+ * @returns {Promise}
+ */
 function deleteAccessibilityRecord( url_data ) {
 	return new Promise( function( resolve, reject ) {
 		var elastic = getElastic();
@@ -346,7 +352,7 @@ function deleteAccessibilityRecord( url_data ) {
 			}
 		}, function( error, response ) {
 			if ( undefined !== typeof response ) {
-				util.log( "Deleted " + response.total + " previous records in " + response.took + " ms." );
+				util.log( "QID" + wsu_a11y_collector.lock_key + ": Deleted " + response.total + " records for " + url_data.url + " in " + response.took + " ms." );
 				resolve( url_data );
 			} else {
 				reject( "Error deleting accessibility records for " + url_data.url );
@@ -355,13 +361,17 @@ function deleteAccessibilityRecord( url_data ) {
 	} );
 }
 
-// Scans a URL for accessibility issues using Pa11y and logs
-// these results to an ES index.
+/**
+ * Scan a URL for accessibility issues using Pa11y and log these
+ * results to an ES index.
+ *
+ * @param url_data
+ * @returns {Promise}
+ */
 function scanAccessibility( url_data ) {
 	return new Promise( function( resolve ) {
 		if ( false === wsu_a11y_collector.active_scanner ) {
 			wsu_a11y_collector.active_scanner = getScanner();
-			util.log( "Scanner Health: Reset scanner" );
 			wsu_a11y_collector.scanner_age = 1;
 		}
 
@@ -399,7 +409,7 @@ function scanAccessibility( url_data ) {
 				body: bulk_body
 			}, function( err, response ) {
 				if ( undefined !== typeof response ) {
-					util.log( "Scan complete: Logged " + response.items.length + " records in " + response.took + "ms." );
+					util.log( "QID" +  wsu_a11y_collector.lock_key + ": Logged " + response.items.length + " records for " + url_data.url + " in " + response.took + "ms." );
 					resolve( url_data );
 				} else {
 					util.log( err );
@@ -410,8 +420,12 @@ function scanAccessibility( url_data ) {
 	} );
 }
 
-// Logs the completion of a scan by updating the last updated
-// date in the URL index.
+/**
+ * Log the completion of a scan by updating the last updated date
+ * in the URL index.
+ *
+ * @param url_data
+ */
 function logScanDate( url_data ) {
 	var d = new Date();
 
@@ -428,6 +442,7 @@ function logScanDate( url_data ) {
 			}
 		}
 	} ).then( function() {
+		delete wsu_a11y_collector.current_urls[ url_data.url ];
 		closeScan();
 	}, function( error ) {
 		closeScan();
@@ -435,13 +450,18 @@ function logScanDate( url_data ) {
 	} );
 }
 
-// Manages the scan of an individual URL. Triggers the deletion of
-// previous associated records and then triggers the collection of
-// new accessibility data.
+/**
+ * Manage the scan of an individual URL.
+ *
+ * Triggers the deletion of previous associated records and then
+ * triggers the collection of new accessibility data.
+ *
+ * @param url_data
+ * @returns {Promise}
+ */
 function scanURL( url_data ) {
-	util.log( "Scan " + url_data.url );
-
 	wsu_a11y_collector.scanner_age++;
+	util.log( "QID" + wsu_a11y_collector.lock_key + ": Start " + url_data.url + ", scanner age " + wsu_a11y_collector.scanner_age );
 
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
@@ -455,7 +475,9 @@ function scanURL( url_data ) {
 	} );
 }
 
-// Manages the process of the scan from start to finish.
+/**
+ * Manage the process of an accessibility record collection.
+ */
 function processScan() {
 	var url_data = getURL();
 
@@ -472,20 +494,9 @@ function processScan() {
 }
 
 /**
- * Start a new scan process whenever fewer than 10 scans
- * are active.
+ * Manage the initiation of new scanner processes.
  */
 function queueScans() {
-	if ( 15 < wsu_a11y_collector.scanner_age ) {
-		delete wsu_a11y_collector.active_scanner;
-		wsu_a11y_collector.active_scans = 0;
-
-		util.log( "Delete old scanner" );
-		setTimeout( createScanner, 1000 );
-		setTimeout( queueScans, 3000 );
-		return;
-	}
-
 	if ( 2 > wsu_a11y_collector.active_scans ) {
 		wsu_a11y_collector.active_scans++;
 		setTimeout( processScan, 100 );
