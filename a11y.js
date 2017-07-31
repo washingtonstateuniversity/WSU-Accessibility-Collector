@@ -119,7 +119,6 @@ function lockURL() {
 		}
 	} ).then( function( response ) {
 		if ( 1 <= response.updated ) {
-			wsu_a11y_collector.locked_urls += response.updated;
 			throw response.updated;
 		}
 
@@ -145,7 +144,6 @@ function lockURL() {
 			}
 		} ).then( function( response ) {
 			if ( 1 <= response.updated ) {
-				wsu_a11y_collector.locked_urls += response.updated;
 				throw response.updated;
 			}
 
@@ -185,7 +183,6 @@ function lockURL() {
 				}
 			} ).then( function( response ) {
 				if ( 1 <= response.updated ) {
-					wsu_a11y_collector.locked_urls += response.updated;
 					throw response.updated;
 				}
 
