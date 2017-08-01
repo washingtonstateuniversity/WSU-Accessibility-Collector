@@ -59,9 +59,18 @@ function getScanner() {
 }
 
 /**
- * Decrease the active scan count.
+ * Decrease the active scan count and remove any URLs that were
+ * cached as current over 2 minutes ago.
  */
 function closeScan() {
+	var d = new Date();
+	var t = d.getTime();
+
+	for ( var url in wsu_a11y_collector.current_urls ) {
+		if ( wsu_a11y_collector.current_urls.hasOwnProperty( url ) && 200000 <= ( t - wsu_a11y_collector.current_urls[ url ] ) ) {
+			delete wsu_a11y_collector.current_urls[ url ];
+		}
+	}
 	wsu_a11y_collector.active_scans--;
 }
 
@@ -268,7 +277,7 @@ function queueLockedURLs() {
 		for ( var j = 0, y = response.hits.hits.length; j < y; j++ ) {
 
 			// Skip URLs that are already queued to be scanned.
-			if ( response.hits.hits[ j ]._source.url in wsu_a11y_collector.url_cache ) {
+			if ( response.hits.hits[ j ]._source.url in Object.keys( wsu_a11y_collector.url_cache ) ) {
 				wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count++;
 
 				if ( 30 <= wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count ) {
@@ -442,7 +451,6 @@ function logScanDate( url_data ) {
 			}
 		}
 	} ).then( function() {
-		delete wsu_a11y_collector.current_urls[ url_data.url ];
 		closeScan();
 	}, function( error ) {
 		closeScan();
