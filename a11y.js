@@ -60,7 +60,7 @@ function getScanner() {
 
 /**
  * Decrease the active scan count and remove any URLs that were
- * cached as current over 10 minutes ago.
+ * cached as current over 2 minutes ago.
  */
 function closeScan() {
 	var d = new Date();
@@ -277,7 +277,7 @@ function queueLockedURLs() {
 		for ( var j = 0, y = response.hits.hits.length; j < y; j++ ) {
 
 			// Skip URLs that are already queued to be scanned.
-			if ( response.hits.hits[ j ]._source.url in wsu_a11y_collector.url_cache ) {
+			if ( response.hits.hits[ j ]._source.url in Object.keys( wsu_a11y_collector.url_cache ) ) {
 				wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count++;
 
 				if ( 30 <= wsu_a11y_collector.url_cache[ response.hits.hits[ j ]._source.url ].count ) {
