@@ -66,7 +66,7 @@ function closeScan() {
 	var d = new Date();
 	var t = d.getTime();
 
-	for( var url in wsu_a11y_collector.current_urls ) {
+	for ( var url in wsu_a11y_collector.current_urls ) {
 		if ( wsu_a11y_collector.current_urls.hasOwnProperty( url ) && 200000 <= ( t - wsu_a11y_collector.current_urls[ url ] ) ) {
 			delete wsu_a11y_collector.current_urls[ url ];
 		}
