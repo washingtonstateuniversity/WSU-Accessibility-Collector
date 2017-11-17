@@ -412,7 +412,7 @@ function scanAccessibility( url_data ) {
 				}
 			} );
 		} ).catch( function( error ) {
-			util.log( "QID" +  wsu_a11y_collector.lock_key + ": Error scanning " + url.data + ", " + error.message );
+			util.log( "QID" +  wsu_a11y_collector.lock_key + ": Error scanning " + url_data.url + ", " + error.message );
 			resolve( url_data );
 		} );
 	} );
