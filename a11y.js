@@ -306,7 +306,7 @@ function queueLockedURLs() {
 		}
 
 		if ( 1 <= response.hits.hits.length ) {
-			util.log( "QID" + wsu_a11y_collector.lock_key + ": " + queued + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing" );
+			util.log( "QID" + wsu_a11y_collector.lock_key + ": " + queued + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing, " + wsu_a11y_collector.active_scans + " active, " + wsu_a11y_collector.scanner_age + " total scanned" );
 			setTimeout( queueLockedURLs, 1000 );
 			return true;
 		}
@@ -479,7 +479,7 @@ function logScanDate( url_data ) {
  */
 function scanURL( url_data ) {
 	wsu_a11y_collector.scanner_age++;
-	util.log( "QID" + wsu_a11y_collector.lock_key + ": Start " + url_data.url + ", scanner age " + wsu_a11y_collector.scanner_age );
+	util.log( "QID" + wsu_a11y_collector.lock_key + ": Start " + url_data.url );
 
 	return new Promise( function( resolve, reject ) {
 		deleteAccessibilityRecord( url_data )
