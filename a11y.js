@@ -54,7 +54,11 @@ function getScanner() {
 				resourceTimeout: 10000,
 				userAgent: "WSU Accessibility Crawler: web.wsu.edu/crawler/"
 			}
-		}
+		},
+		ignore: [
+			"notice",
+			"warning"
+		]
 	} );
 }
 
