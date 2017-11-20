@@ -390,13 +390,13 @@ function scanAccessibility( url_data ) {
 
 		wsu_a11y_collector.active_scanner.run( url_data.url, function( error, result ) {
 			if ( error ) {
-				util.log( error.message );
+				util.log( "QID" +  wsu_a11y_collector.lock_key + ": " + error.message + " when scanning " + url_data.url );
 				resolve( url_data );
 				return;
 			}
 
 			if ( "undefined" === typeof result ) {
-				util.log( "Scanning failed or had 0 results for " + url_data.url );
+				util.log( "QID" +  wsu_a11y_collector.lock_key + ": No scanner result returned for " + url_data.url );
 				resolve( url_data );
 				return;
 			}
