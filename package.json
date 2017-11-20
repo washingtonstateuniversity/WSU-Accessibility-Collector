@@ -5,8 +5,8 @@
   "main": "wsu-a11y-collector.js",
   "dependencies": {
     "dotenv": "^4.0.0",
-    "elasticsearch": "^13.1.0",
-    "pa11y": "^4.11.0",
+    "elasticsearch": "^14.0.0",
+    "pa11y": "^4.13.1",
     "url": "^0.11.0"
   },
   "repository": {
