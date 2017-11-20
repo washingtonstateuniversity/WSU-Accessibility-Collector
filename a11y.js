@@ -401,6 +401,12 @@ function scanAccessibility( url_data ) {
 				return;
 			}
 
+			if ( 0 === result.length ) {
+				util.log( "QID" +  wsu_a11y_collector.lock_key + ": Logged 0 records for " + url_data.url );
+				resolve( url_data );
+				return;
+			}
+
 			var bulk_body = [];
 
 			// Append domain and URL information to each result and build a
