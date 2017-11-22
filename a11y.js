@@ -73,6 +73,7 @@ function closeScan() {
 	for ( var url in wsu_a11y_collector.current_urls ) {
 		if ( wsu_a11y_collector.current_urls.hasOwnProperty( url ) && 200000 <= ( t - wsu_a11y_collector.current_urls[ url ] ) ) {
 			delete wsu_a11y_collector.current_urls[ url ];
+			util.log( "QID" + wsu_a11y_collector.lock_key + ": " + url + " removed from current URLs list" );
 		}
 	}
 	wsu_a11y_collector.active_scans--;
@@ -306,7 +307,14 @@ function queueLockedURLs() {
 		}
 
 		if ( 1 <= response.hits.hits.length ) {
-			util.log( "QID" + wsu_a11y_collector.lock_key + ": " + queued + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " existing, " + wsu_a11y_collector.active_scans + " active, " + wsu_a11y_collector.scanner_age + " total scanned" );
+			util.log( "QID" + wsu_a11y_collector.lock_key + ": " +
+				queued + " urls cached, " +
+				Object.keys( wsu_a11y_collector.url_cache ).length + " urls in cache, " +
+				response.hits.total + " urls locked in ES, " +
+				wsu_a11y_collector.active_scans + " active scans, " +
+				wsu_a11y_collector.scanner_age + " total scanned"
+			);
+
 			setTimeout( queueLockedURLs, 1000 );
 			return true;
 		}
