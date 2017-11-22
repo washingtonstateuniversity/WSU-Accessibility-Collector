@@ -508,6 +508,7 @@ function processScan() {
 			} );
 	} else {
 		closeScan();
+		util.log( "QID" +  wsu_a11y_collector.lock_key + ": No new URL found to scan" );
 	}
 }
 
