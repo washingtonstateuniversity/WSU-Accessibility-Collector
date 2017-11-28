@@ -16,6 +16,7 @@ var wsu_a11y_collector = {
 	current_urls: [],      // URLs that are currently being scanned.
 	active_scans: 0,       // The total number of active scans.
 	active_scanner: false, // The pa11y scanner instance.
+	stale_scanner_age: 0,  // The number of times 2 active scans have remained.
 	locker_locked: false,  // Locks the URL locker process when filled.
 	lock_key: null,        // This accessibility collector's ID.
 	scanner_age: 0         // Total number of scans.
@@ -527,7 +528,15 @@ function queueScans() {
 	if ( 2 > wsu_a11y_collector.active_scans ) {
 		wsu_a11y_collector.active_scans++;
 		setTimeout( processScan, 100 );
+	} else if ( 600 <= wsu_a11y_collector.stale_scanner_age ) {
+
+		// Reset the active scanner after 5 minutes of stale behavior.
+		wsu_a11y_collector.active_scans = 0;
+		wsu_a11y_collector.active_scanner = false;
+		wsu_a11y_collector.stale_scanner_age = 0;
 	}
+
+	wsu_a11y_collector.stale_scanner_age++;
 
 	setTimeout( queueScans, 500 );
 }
