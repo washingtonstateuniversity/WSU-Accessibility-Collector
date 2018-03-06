@@ -16,6 +16,7 @@ var wsu_a11y_collector = {
 	current_urls: [],      // URLs that are currently being scanned.
 	active_scans: 0,       // The total number of active scans.
 	active_scanner: false, // The pa11y scanner instance.
+	stale_scanner_age: 0,  // The number of times 2 active scans have remained.
 	locker_locked: false,  // Locks the URL locker process when filled.
 	lock_key: null,        // This accessibility collector's ID.
 	scanner_age: 0         // Total number of scans.
@@ -46,6 +47,7 @@ function closeScan() {
 	for ( var url in wsu_a11y_collector.current_urls ) {
 		if ( wsu_a11y_collector.current_urls.hasOwnProperty( url ) && 200000 <= ( t - wsu_a11y_collector.current_urls[ url ] ) ) {
 			delete wsu_a11y_collector.current_urls[ url ];
+			util.log( "QID" + wsu_a11y_collector.lock_key + ": " + url + " removed from current URLs list" );
 		}
 	}
 	wsu_a11y_collector.active_scans--;
@@ -487,6 +489,7 @@ function processScan() {
 			} );
 	} else {
 		closeScan();
+		util.log( "QID" +  wsu_a11y_collector.lock_key + ": No new URL found to scan" );
 	}
 }
 
@@ -497,7 +500,15 @@ function queueScans() {
 	if ( 2 > wsu_a11y_collector.active_scans ) {
 		wsu_a11y_collector.active_scans++;
 		setTimeout( processScan, 100 );
+	} else if ( 600 <= wsu_a11y_collector.stale_scanner_age ) {
+
+		// Reset the active scanner after 5 minutes of stale behavior.
+		wsu_a11y_collector.active_scans = 0;
+		wsu_a11y_collector.active_scanner = false;
+		wsu_a11y_collector.stale_scanner_age = 0;
 	}
+
+	wsu_a11y_collector.stale_scanner_age++;
 
 	setTimeout( queueScans, 500 );
 }
