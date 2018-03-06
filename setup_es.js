@@ -2,6 +2,21 @@
 
 require( "dotenv" ).config();
 
+if ( "undefined" === typeof( process.env.ES_INDEX ) ) {
+	console.log( "No Elasticsearch Accessibility record index (ES_INDEX) defined." );
+	process.exit();
+}
+
+if ( "undefined" === typeof( process.env.ES_URL_INDEX ) ) {
+	console.log( "No Elasticsearch URL index (ES_URL_INDEX) defined." );
+	process.exit();
+}
+
+if ( "undefined" === typeof( process.env.ES_HOST ) ) {
+	console.log( "No Elasticsearch host instance (ES_HOST) defined." );
+	process.exit();
+}
+
 var elastic = {};
 var elasticsearch = require( "elasticsearch" );
 
