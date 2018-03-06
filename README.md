@@ -15,7 +15,14 @@ This tool works alongside [WSU Web Crawler](https://github.com/washingtonstateun
 
 ## Configuration
 
-Configuration is managed through a `.env` file located inside the project directory.
+Configuration is managed through a `.env` file located inside the project directory. It should have values like:
+
+```
+ES_HOST="https://myelastic.domain"
+ES_INDEX="a11y-storage-index"
+ES_URL_INDEX="url-storage-index"
+LOCK_KEY=2001
+```
 
 * `ES_HOST` defines the hostname of the Elasticsearch instance.
 * `ES_INDEX` defines the index name that wsu-a11y-collector should create and use for data storage.
