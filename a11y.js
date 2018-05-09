@@ -37,33 +37,6 @@ function getElastic() {
 }
 
 /**
- * Retrieve an instance of the accessibility scanner.
- *
- * @returns {pa11y}
- */
-function getScanner() {
-	return pa11y( {
-		standard: "WCAG2AA",
-		timeout: 10000,
-		wait: 10,
-		page: {
-			viewport: {
-				width: 1366,
-				height: 768
-			},
-			settings: {
-				resourceTimeout: 10000,
-				userAgent: "WSU Accessibility Crawler: web.wsu.edu/crawler/"
-			}
-		},
-		ignore: [
-			"notice",
-			"warning"
-		]
-	} );
-}
-
-/**
  * Decrease the active scan count and remove any URLs that were
  * cached as current over 2 minutes ago.
  */
@@ -308,14 +281,7 @@ function queueLockedURLs() {
 		}
 
 		if ( 1 <= response.hits.hits.length ) {
-			util.log( "QID" + wsu_a11y_collector.lock_key + ": " +
-				queued + " urls cached, " +
-				Object.keys( wsu_a11y_collector.url_cache ).length + " urls in cache, " +
-				response.hits.total + " urls locked in ES, " +
-				wsu_a11y_collector.active_scans + " active scans, " +
-				wsu_a11y_collector.scanner_age + " total scanned"
-			);
-
+			util.log( "QID" + wsu_a11y_collector.lock_key + ": " + queued + " added, " + Object.keys( wsu_a11y_collector.url_cache ).length + " queued, " + wsu_a11y_collector.active_scans + " active, " + wsu_a11y_collector.scanner_age + " scanned" );
 			setTimeout( queueLockedURLs, 1000 );
 			return true;
 		}
@@ -393,24 +359,27 @@ function deleteAccessibilityRecord( url_data ) {
 function scanAccessibility( url_data ) {
 	return new Promise( function( resolve ) {
 		if ( false === wsu_a11y_collector.active_scanner ) {
-			wsu_a11y_collector.active_scanner = getScanner();
+			wsu_a11y_collector.active_scanner = true;
 			wsu_a11y_collector.scanner_age = 1;
 		}
 
-		wsu_a11y_collector.active_scanner.run( url_data.url, function( error, result ) {
-			if ( error ) {
-				util.log( "QID" +  wsu_a11y_collector.lock_key + ": " + error.message + " when scanning " + url_data.url );
-				resolve( url_data );
-				return;
-			}
-
+		pa11y( url_data.url, {
+			standard: "WCAG2AA",
+			timeout: 10000,
+			userAgent: "WSU Accessibility Crawler: web.wsu.edu/crawler/",
+			viewport: {
+				width: 1366,
+				height: 768
+			},
+			wait: 10
+		} ).then( function( result ) {
 			if ( "undefined" === typeof result ) {
-				util.log( "QID" +  wsu_a11y_collector.lock_key + ": No scanner result returned for " + url_data.url );
+				util.log( "Scanning failed or had 0 results for " + url_data.url );
 				resolve( url_data );
 				return;
 			}
 
-			if ( 0 === result.length ) {
+			if ( result.issues.length === 0 ) {
 				util.log( "QID" +  wsu_a11y_collector.lock_key + ": Logged 0 records for " + url_data.url );
 				resolve( url_data );
 				return;
@@ -420,15 +389,15 @@ function scanAccessibility( url_data ) {
 
 			// Append domain and URL information to each result and build a
 			// set of bulk data to send to ES.
-			for ( var i = 0, x = result.length; i < x; i++ ) {
+			for ( var i = 0, x = result.issues.length; i < x; i++ ) {
 
-				result[ i ].domain = url_data.domain;
-				result[ i ].url = url_data.url;
+				result.issues[ i ].domain = url_data.domain;
+				result.issues[ i ].url = url_data.url;
 
 				// Create a single document of the "record type" for every record
 				// returned against a URL.
 				bulk_body.push( { index: { _index: process.env.ES_INDEX, _type: "record" } } );
-				bulk_body.push( result[ i ] );
+				bulk_body.push( result.issues[ i ] );
 			}
 
 			var elastic = getElastic();
@@ -444,6 +413,9 @@ function scanAccessibility( url_data ) {
 					resolve( url_data );
 				}
 			} );
+		} ).catch( function( error ) {
+			util.log( "QID" +  wsu_a11y_collector.lock_key + ": Error scanning " + url_data.url + ", " + error.message );
+			resolve( url_data );
 		} );
 	} );
 }

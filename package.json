@@ -4,9 +4,9 @@
   "description": "Scans and collects accessibility data for a given set of URLs",
   "main": "wsu-a11y-collector.js",
   "dependencies": {
-    "dotenv": "^4.0.0",
-    "elasticsearch": "^14.0.0",
-    "pa11y": "^4.13.1",
+    "dotenv": "^5.0.1",
+    "elasticsearch": "^14.2.2",
+    "pa11y": "^5.0.3",
     "url": "^0.11.0"
   },
   "repository": {
@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/washingtonstateuniversity/wsu-a11y-collector",
   "devDependencies": {
-    "grunt": "^1.0.1",
+    "grunt": "^1.0.2",
     "grunt-contrib-jshint": "^1.1.0",
     "grunt-jscs": "^3.0.1"
   },
